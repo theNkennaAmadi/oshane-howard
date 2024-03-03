@@ -1,0 +1,27 @@
+{
+  "name": "oshane-howard",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^5.0.8"
+  },
+  "dependencies": {
+    "@barba/core": "^2.9.7",
+    "@lottiefiles/lottie-player": "^2.0.3",
+    "@studio-freight/lenis": "^1.0.34",
+    "barba.js": "^1.0.0",
+    "colorthief": "^2.4.0",
+    "gsap": "file:gsap-bonus.tgz",
+    "lottie-web": "^5.12.2",
+    "odometer": "^0.4.8",
+    "splitting": "^1.0.6",
+    "swiper": "^11.0.6",
+    "webflow-api": "^1.3.1"
+  }
+}
