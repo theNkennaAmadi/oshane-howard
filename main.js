@@ -2,7 +2,6 @@ import barba from "@barba/core";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Observer } from "gsap/Observer";
-import Swiper from "swiper";
 import Lenis from "@studio-freight/lenis";
 import ColorThief from "colorthief";
 
@@ -11,7 +10,7 @@ console.log(col);
 
 import Projects from "./projects.js";
 import Info from "./info.js";
-import MainNav from "./utils.js";
+import {Nav, backgroundColorReset} from "./global.js";
 import WorkCategory from "./workCategory.js";
 import Home from "./index.js";
 import LoaderAnimation from "./Loader.js";
@@ -38,6 +37,11 @@ gsap.ticker.lagSmoothing(0);
 
  */
 
+const backgroundColorReset = (container)=>{
+  let bgColor = getComputedStyle(container).backgroundColor;
+  gsap.to("body", { backgroundColor: bgColor, duration: 1 });
+}
+
 barba.hooks.beforeLeave((data) => {
   gsap.getTweensOf("*").forEach((animation) => {
     animation.kill();
@@ -62,9 +66,8 @@ barba.init({
       namespace: "home",
       beforeEnter(data) {
         let nextContainer = data.next.container;
-        let bgColor = getComputedStyle(nextContainer).backgroundColor;
-        gsap.to("body", { backgroundColor: bgColor, duration: 1 });
-        new MainNav(nextContainer);
+        backgroundColorReset(nextContainer);
+        new Nav(nextContainer);
         new Home(nextContainer);
         if (firstLoad) {
           new LoaderAnimation(nextContainer);
@@ -93,19 +96,17 @@ barba.init({
       namespace: "info",
       beforeEnter(data) {
         let nextContainer = data.next.container;
-        let bgColor = getComputedStyle(nextContainer).backgroundColor;
-        gsap.to("body", { backgroundColor: bgColor, duration: 1 });
+        backgroundColorReset(nextContainer);
+        new Nav(nextContainer);
         new Info(nextContainer);
-        new MainNav(nextContainer);
       },
     },
     {
       namespace: "work-category",
       beforeEnter(data) {
         let nextContainer = data.next.container;
-        let bgColor = getComputedStyle(nextContainer).backgroundColor;
-        gsap.to("body", { backgroundColor: bgColor, duration: 1 });
-        new MainNav(nextContainer);
+        backgroundColorReset(nextContainer);
+        new Nav(nextContainer);
         new WorkCategory(nextContainer);
       },
     },
@@ -113,10 +114,9 @@ barba.init({
       namespace: "work",
       beforeEnter(data) {
         let nextContainer = data.next.container;
-        let bgColor = getComputedStyle(nextContainer).backgroundColor;
-        gsap.to("body", { backgroundColor: bgColor, duration: 1 });
+        backgroundColorReset(nextContainer);
+        new Nav(nextContainer);
         new Projects(nextContainer);
-        new MainNav(nextContainer);
       },
     },
     {
