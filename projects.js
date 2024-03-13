@@ -30,6 +30,7 @@ class Projects {
 
   getScrollAmount() {
     this.scrollContainerWidth = this.scrollContainer.scrollWidth;
+    console.log(this.scrollContainerWidth);
     return -(this.scrollContainerWidth - window.innerWidth);
   }
 
