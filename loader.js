@@ -2,6 +2,7 @@ import { Item } from "./item.js";
 import gsap from "gsap";
 import Odometer from "odometer";
 import "odometer/themes/odometer-theme-default.css";
+import Home from "./index.js";
 
 class LoaderAnimation {
   items = []; // Array to store instances of the Item class
@@ -13,16 +14,17 @@ class LoaderAnimation {
   };
   constructor(container) {
     this.container = container;
-    this.DOMlayers = container.querySelector(".hero-visual-list");
-    this.DOMItems = [...this.DOMlayers.querySelectorAll(".hero-visual-item")];
+    this.DOMlayers = container.querySelector(".hero-visual-list-wrapper");
+    this.DOMItems = [...this.DOMlayers.querySelectorAll(".hero-link")];
     this.init();
   }
 
   init() {
-    this.DOMItems.forEach((item) => {
+    this.DOMItems.forEach((item, index) => {
       this.items.push(new Item(item)); // Initializing a new object for each item
+      item.style.zIndex = index + 5; // Setting the z-index of each item
     });
-    //this.animate();
+    gsap.set(".preloader-wrapper > *", { opacity: 1 });
     this.odometer();
   }
 
@@ -99,6 +101,7 @@ class LoaderAnimation {
     const allInnerItems = this.items.map((item) => item.DOM.inner);
 
     const lastInner = this.items[this.items.length - 1].DOM.inner;
+    gsap.set(".hero-visual-item", { opacity: 1 });
 
     // Creating a new GSAP timeline for managing a sequence of animations
     this.tl = gsap
@@ -110,6 +113,10 @@ class LoaderAnimation {
           ease: this.animationSettings.ease,
         },
         delay: 3,
+        onComplete: () => {
+          //gsap.set(this.targets(), { clearProps: "all" });
+          new Home(this.container);
+        },
       })
       .fromTo(
         this.DOMlayers,
@@ -158,12 +165,12 @@ class LoaderAnimation {
         {
           // Starting state for 'inner' elements' animation
           xPercent: 0,
-          filter: "brightness(15%)", // CSS filters to adjust color
+          filter: "brightness(10%)", // CSS filters to adjust color
         },
         {
           // Animation target state
-          stagger: this.animationSettings.delayFactor, // Stagger settings similar to above
-          filter: "brightness(120%)", // Full brightness
+          stagger: this.animationSettings.delayFactor * 1.2, // Stagger settings similar to above
+          filter: "brightness(100%)", // Full brightness
         },
         0
       )
@@ -172,8 +179,8 @@ class LoaderAnimation {
         this.animationSettings.duration +
           this.animationSettings.delayFactor * (this.items.length - 1)
       )
-      .to(".hero-text, .nav-wrapper", {
-        opacity: 1,
+      .from(".hero-text, .nav-wrapper", {
+        opacity: 0,
         duration: 1,
         ease: "power3.inOut",
       });

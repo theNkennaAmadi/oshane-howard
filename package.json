@@ -4,17 +4,19 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host",
     "build": "vite build",
     "preview": "vite preview"
   },
   "devDependencies": {
-    "vite": "^5.0.8"
+    "vite": "^5.0.8",
+    "vite-plugin-mkcert": "^1.17.4"
   },
   "dependencies": {
     "@barba/core": "^2.9.7",
     "@lottiefiles/lottie-player": "^2.0.3",
     "@studio-freight/lenis": "^1.0.34",
+    "@vitejs/plugin-basic-ssl": "^1.1.0",
     "barba.js": "^1.0.0",
     "colorthief": "^2.4.0",
     "gsap": "file:gsap-bonus.tgz",

@@ -3,6 +3,7 @@ import "splitting/dist/splitting.css";
 import Splitting from "splitting";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import ColorThief from "colorthief";
+import { debounce } from "./global.js";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -22,6 +23,10 @@ class WorkCategory {
     this.workNum = container.querySelector(".work-num");
     this.workTotal = container.querySelector(".work-total");
     this.sets = [this.workItems];
+    this.debouncedShowActiveItem = debounce(
+      this.showActiveItem.bind(this),
+      250
+    );
     this.init();
   }
 
@@ -46,6 +51,7 @@ class WorkCategory {
     this.lines = results.map((result) => result.lines);
     //console.log(this.lines);
     // console.log(results);
+    gsap.to(".h2-large.work-name", { opacity: 1 });
   }
 
   oItems() {
@@ -89,12 +95,12 @@ class WorkCategory {
         onEnter: () => {
           this.workNum.textContent = String(index + 1).padStart(2, "0");
           console.log(index);
-          this.showActiveItem(index);
+          this.debouncedShowActiveItem(index);
         },
         onLeaveBack: () => {
           this.workNum.textContent = String(index + 1).padStart(2, "0");
           console.log(index);
-          this.showActiveItem(index);
+          this.debouncedShowActiveItem(index);
         },
       });
     });
@@ -121,12 +127,15 @@ class WorkCategory {
 
         if (this.targetElement) {
           console.log(this.targetElement);
-          this.showActiveItem(this.targetElement);
+          this.debouncedShowActiveItem(this.targetElement);
           gsap.set(".bg-layer", {
-            backgroundImage: `linear-gradient(180deg, #000 0%, rgb(${this.targetElement.dataset.color}) 100%)`,
+            background: `linear-gradient(180deg, #fff 0%, rgb(${this.targetElement.dataset.color}) 90%)`,
+            //backgroundColor: "black",
           });
+
           gsap.set(".page-wrapper", {
-            color: `white`,
+            background: `linear-gradient(180deg, #fff 0%, rgb(${this.targetElement.dataset.color}) 90%)`,
+            //color: `rgb(${this.targetElement.dataset.color})`,
           });
         }
       },

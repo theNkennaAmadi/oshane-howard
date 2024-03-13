@@ -10,6 +10,7 @@ const lottie = Webflow.require("lottie").lottie;
 class Projects {
   fadeOutTimeout = null;
   constructor(container) {
+    this.container = container;
     this.scrollContainer = container.querySelector(".work-wrapper");
     this.invisible = [...container.querySelectorAll(".w-condition-invisible")];
     this.nextImage = container.querySelector(".next-up-image");
@@ -33,7 +34,6 @@ class Projects {
   }
 
   init() {
-    console.log("mls");
     Splitting();
     this.splitText();
     this.getScrollAmount();
@@ -56,46 +56,86 @@ class Projects {
       wrapper.appendChild(word);
     });
     let lines = results.map((result) => result.lines);
-    // console.log(lines);
+    console.log(lines);
     gsap.to(lines, {
       yPercent: 0,
       opacity: 1,
-      stagger: {
-        amount: 1,
-      },
-      ease: "linear",
+      duration: 0.75,
+      ease: "expo.out",
       delay: 0.5,
     });
     // console.log(results);
   }
   initHorizontalScroll() {
-    let horScroll = gsap.to(this.scrollContainer, {
-      x: this.getScrollAmount(),
-      ease: "none",
-      scrollTrigger: {
-        trigger: this.scrollContainer,
-        start: "top top",
-        end: `+=${this.getScrollAmount() * -1}`,
-        scrub: 1,
-        pin: true,
-        invalidateOnRefresh: true,
-      },
-    });
+    let mm = gsap.matchMedia();
 
-    let tl = gsap.timeline();
-    tl.from(this.nextImage, {
-      scale: 0,
-      duration: 5,
-      ease: "expo.out",
-      scrollTrigger: {
-        containerAnimation: horScroll,
-        trigger: document.querySelector(".next-up-wrapper"),
-        start: "0% center",
-        end: "32% center",
-        //toggleActions: "play none none reverse",
-        scrub: 1,
-        //markers: true,
-      },
+    mm.add("(min-width: 480px)", () => {
+      this.scrollContainer = this.container.querySelector(".work-wrapper");
+      let horScroll = gsap.to(this.scrollContainer, {
+        x: this.getScrollAmount(),
+        ease: "none",
+        scrollTrigger: {
+          trigger: this.scrollContainer,
+          start: "top top",
+          end: `+=${this.getScrollAmount() * -1}`,
+          scrub: 1,
+          pin: true,
+          markers: true,
+          invalidateOnRefresh: true,
+        },
+      });
+
+      let tl = gsap.timeline();
+      tl.from(this.nextImage, {
+        scale: 0,
+        duration: 5,
+        ease: "expo.out",
+        scrollTrigger: {
+          containerAnimation: horScroll,
+          trigger: document.querySelector(".next-up-wrapper"),
+          start: "0% center",
+          end: "32% center",
+          //toggleActions: "play none none reverse",
+          scrub: 1,
+          //markers: true,
+        },
+      });
+    });
+    mm.add("(max-width: 479px)", () => {
+      console.log("mobile");
+      this.scrollContainer = this.container.querySelector(
+        ".work-visuals-wrapper"
+      );
+      console.log(this.scrollContainer);
+      let horScroll = gsap.to(this.scrollContainer, {
+        x: this.getScrollAmount(),
+        ease: "none",
+        scrollTrigger: {
+          trigger: this.scrollContainer,
+          start: "top top",
+          end: `+=${this.getScrollAmount() * -1}`,
+          scrub: 1,
+          pin: true,
+          markers: true,
+          invalidateOnRefresh: true,
+        },
+      });
+
+      let tl = gsap.timeline();
+      tl.from(this.nextImage, {
+        scale: 0,
+        duration: 5,
+        ease: "expo.out",
+        scrollTrigger: {
+          containerAnimation: horScroll,
+          trigger: document.querySelector(".next-up-wrapper"),
+          start: "0% center",
+          end: "32% center",
+          //toggleActions: "play none none reverse",
+          scrub: 1,
+          //markers: true,
+        },
+      });
     });
   }
 

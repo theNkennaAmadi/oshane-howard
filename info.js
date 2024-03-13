@@ -178,7 +178,7 @@ class Info {
         scrollTrigger: {
           trigger: list,
           start: "top 80%",
-          end: "top center",
+          end: "top 60%",
           toggleActions: "play none none none",
         },
         width: "0%",

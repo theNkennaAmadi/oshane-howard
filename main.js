@@ -3,21 +3,18 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Observer } from "gsap/Observer";
 import Lenis from "@studio-freight/lenis";
-import ColorThief from "colorthief";
-
-let col = new ColorThief();
-console.log(col);
 
 import Projects from "./projects.js";
 import Info from "./info.js";
-import {Nav, backgroundColorReset} from "./global.js";
+import { Nav, backgroundColorReset } from "./global.js";
 import WorkCategory from "./workCategory.js";
 import Home from "./index.js";
-import LoaderAnimation from "./Loader.js";
+import LoaderAnimation from "./loader.js";
 
 gsap.registerPlugin(ScrollTrigger, Observer);
 
 let m = null;
+let navInstance = new Nav(document.querySelector(".page-wrapper"));
 
 /**
  * Lenis Initialization
@@ -37,14 +34,9 @@ gsap.ticker.lagSmoothing(0);
 
  */
 
-const backgroundColorReset = (container)=>{
-  let bgColor = getComputedStyle(container).backgroundColor;
-  gsap.to("body", { backgroundColor: bgColor, duration: 1 });
-}
-
 barba.hooks.beforeLeave((data) => {
   gsap.getTweensOf("*").forEach((animation) => {
-    animation.kill();
+    //animation.kill();
   });
   ScrollTrigger.clearScrollMemory();
   //ScrollTrigger.removeEventListener("scrollEnd", gallerySnap);
@@ -67,16 +59,19 @@ barba.init({
       beforeEnter(data) {
         let nextContainer = data.next.container;
         backgroundColorReset(nextContainer);
-        new Nav(nextContainer);
-        new Home(nextContainer);
+        navInstance = new Nav(nextContainer);
+        //new Home(nextContainer);
         if (firstLoad) {
           new LoaderAnimation(nextContainer);
         } else {
           gsap.set(".preloader-wrapper, .preloader-line", {
             display: "none",
           });
-          //gsap.set)
-          let mTL = gsap.timeline();
+          let mTL = gsap.timeline({
+            onComplete: () => {
+              new Home(nextContainer);
+            },
+          });
           mTL.to(".hero-visual-list", {
             width: "100%",
             height: "100%",
@@ -84,8 +79,8 @@ barba.init({
             ease: "expo.out",
           });
           mTL.set(".hero-visual-item", { opacity: 1 });
-          mTL.to(".hero-text, .nav-wrapper", {
-            opacity: 1,
+          mTL.from(".hero-text, .nav-wrapper", {
+            opacity: 0,
             duration: 1,
             ease: "power3.inOut",
           });
@@ -97,7 +92,7 @@ barba.init({
       beforeEnter(data) {
         let nextContainer = data.next.container;
         backgroundColorReset(nextContainer);
-        new Nav(nextContainer);
+        navInstance = new Nav(nextContainer);
         new Info(nextContainer);
       },
     },
@@ -106,7 +101,7 @@ barba.init({
       beforeEnter(data) {
         let nextContainer = data.next.container;
         backgroundColorReset(nextContainer);
-        new Nav(nextContainer);
+        navInstance = new Nav(nextContainer);
         new WorkCategory(nextContainer);
       },
     },
@@ -115,7 +110,7 @@ barba.init({
       beforeEnter(data) {
         let nextContainer = data.next.container;
         backgroundColorReset(nextContainer);
-        new Nav(nextContainer);
+        navInstance = new Nav(nextContainer);
         new Projects(nextContainer);
       },
     },
@@ -130,16 +125,31 @@ barba.init({
       enter(data) {
         let nextContainer = data.next.container;
         let currentContainer = data.current.container;
-        gsap.set(currentContainer, { opacity: 0.4, duration: 1 });
+        console.log(nextContainer);
+        backgroundColorReset(nextContainer);
+        //reverse the openTL timeline of the Nav class
+        //console.log(navInstance.container);
+        //navInstance.navOpenTl.reverse();
+        /*
+        gsap.to(currentContainer.querySelector(".main"), {
+          scale: 0.9,
+          duration: 1,
+        });
+
+         */
+        gsap.fromTo(
+          nextContainer,
+          { yPercent: 100 },
+          { yPercent: 0, duration: 0 }
+        );
         return gsap.fromTo(
           nextContainer,
           {
-            clipPath: "polygon(0% 0%, 100% 0%, 100% 0%, 0% 0%)",
+            opacity: 1,
           },
           {
-            clipPath: "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)",
-            ease: "expo.inOut",
-            duration: 2,
+            opacity: 1,
+            duration: 1,
           }
         );
       },
@@ -148,8 +158,8 @@ barba.init({
 });
 
 window.addEventListener("DOMContentLoaded", () => {
-  gsap.from("body", { autoAlpha: 0, duration: 0.5, ease: "linear" });
-  gsap.to(":root", {
+  gsap.set("body", { autoAlpha: 1, ease: "linear", delay: 0.5 });
+  gsap.set(":root", {
     duration: 0.3,
     delay: window.location.pathname === "/" ? 5 : 0,
     ease: "power1.out",
