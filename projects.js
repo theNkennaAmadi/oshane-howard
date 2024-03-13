@@ -57,7 +57,6 @@ class Projects {
       wrapper.appendChild(word);
     });
     let lines = results.map((result) => result.lines);
-    console.log(lines);
     gsap.to(lines, {
       yPercent: 0,
       opacity: 1,
@@ -107,7 +106,6 @@ class Projects {
       this.scrollContainer = this.container.querySelector(
         ".work-visuals-wrapper"
       );
-      console.log(this.scrollContainer);
       let horScroll = gsap.to(this.scrollContainer, {
         x: this.getScrollAmount(),
         ease: "none",
