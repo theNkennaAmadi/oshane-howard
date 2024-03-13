@@ -34,6 +34,7 @@ class Projects {
     console.log(
       document.querySelector(".work-wrapper").scrollWidth - window.innerWidth
     );
+    console.log("j");
     return -(this.scrollContainerWidth - window.innerWidth);
   }
 
