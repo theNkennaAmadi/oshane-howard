@@ -28,20 +28,16 @@ class Projects {
     this.invisible.map((el) => el.remove());
   }
 
-  getScrollAmount() {
-    this.scrollContainerWidth = this.scrollContainer.scrollWidth;
+  getScrollAmount(container) {
+    this.scrollContainerWidth = container.scrollWidth;
     console.log(this.scrollContainerWidth - window.innerWidth);
-    console.log(
-      document.querySelector(".work-wrapper").scrollWidth - window.innerWidth
-    );
-    console.log("j");
     return -(this.scrollContainerWidth - window.innerWidth);
   }
 
   init() {
     Splitting();
     this.splitText();
-    this.getScrollAmount();
+    this.getScrollAmount(this.scrollContainer);
     this.initHorizontalScroll();
     if (this.scrollContainer.dataset.type === "Motion") {
       this.togglePlay();
@@ -76,12 +72,12 @@ class Projects {
     mm.add("(min-width: 480px)", () => {
       this.scrollContainer = this.container.querySelector(".work-wrapper");
       let horScroll = gsap.to(this.scrollContainer, {
-        x: this.getScrollAmount(),
+        x: this.getScrollAmount(this.scrollContainer),
         ease: "none",
         scrollTrigger: {
           trigger: this.scrollContainer,
           start: "top top",
-          end: `+=${this.getScrollAmount() * -1}`,
+          end: `+=${this.getScrollAmount(this.scrollContainer) * -1}`,
           scrub: 1,
           pin: true,
           markers: true,
@@ -111,12 +107,12 @@ class Projects {
         ".work-visuals-wrapper"
       );
       let horScroll = gsap.to(this.scrollContainer, {
-        x: this.getScrollAmount(),
+        x: this.getScrollAmount(this.scrollContainer),
         ease: "none",
         scrollTrigger: {
           trigger: this.scrollContainer,
           start: "top top",
-          end: `+=${this.getScrollAmount() * -1}`,
+          end: `+=${this.getScrollAmount(this.scrollContainer) * -1}`,
           scrub: 1,
           pin: true,
           markers: true,
