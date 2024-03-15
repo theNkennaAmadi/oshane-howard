@@ -47,6 +47,7 @@ barba.hooks.beforeLeave((data) => {
   if (history.scrollRestoration) {
     history.scrollRestoration = "manual";
   }
+  //lenis.destroy();
 });
 
 let firstLoad = false;

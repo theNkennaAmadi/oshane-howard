@@ -4,6 +4,7 @@ import Splitting from "splitting";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import ColorThief from "colorthief";
 import { debounce } from "./global.js";
+import Lenis from "@studio-freight/lenis";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -28,14 +29,29 @@ class WorkCategory {
       250
     );
     this.init();
+    this.initLenis();
   }
 
   init() {
     this.workTotal.textContent = String(this.worksName.length).padStart(2, "0");
-    this.splitText();
+    //this.splitText();
     //this.infiniteScroll();
-    this.getDominantColor();
+    //this.getDominantColor();
   }
+
+  initLenis() {
+    const lenis = new Lenis({
+      infinite: true,
+    });
+
+    function onRaf(time) {
+      lenis.raf(time);
+      requestAnimationFrame(onRaf);
+    }
+
+    requestAnimationFrame(onRaf);
+  }
+
   splitText() {
     const target = [...document.querySelectorAll("[split-target]")];
     const results = Splitting({ target: target, by: "lines" });
