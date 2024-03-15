@@ -17,16 +17,22 @@ class WorkCategory {
   prevIndex = 0;
   currIndex = 1;
   colorThief = new ColorThief();
+  tlChangeBG = gsap.timeline();
   constructor(container) {
     this.workContainer = container.querySelector(".t-list");
-    this.workItems = [...container.querySelectorAll(".t-item")];
+    this.workItems = [...this.workContainer.querySelectorAll(".t-item")];
     this.worksName = [...container.querySelectorAll(".works-name-item")];
     this.workNum = container.querySelector(".work-num");
     this.workTotal = container.querySelector(".work-total");
     this.sets = [this.workItems];
+    this.getDominantColor();
     this.debouncedShowActiveItem = debounce(
       this.showActiveItem.bind(this),
-      250
+      200
+    );
+    this.debouncedChangeBGcolor = debounce(
+        this.changeBGcolor.bind(this),
+        100
     );
     this.init();
     this.initLenis();
@@ -34,9 +40,10 @@ class WorkCategory {
 
   init() {
     this.workTotal.textContent = String(this.worksName.length).padStart(2, "0");
-    //this.splitText();
+    this.splitText();
     //this.infiniteScroll();
-    //this.getDominantColor();
+
+    this.getActiveItem()
   }
 
   initLenis() {
@@ -67,7 +74,7 @@ class WorkCategory {
     this.lines = results.map((result) => result.lines);
     //console.log(this.lines);
     // console.log(results);
-    gsap.to(".h2-large.work-name", { opacity: 1 });
+    gsap.to(".works-name-item", { opacity: 1 });
   }
 
   oItems() {
@@ -326,6 +333,30 @@ class WorkCategory {
     observerSentinel.observe(bottomSentinel);
   }
 
+  getActiveItem(){
+    this.workItems.forEach((item, index) => {
+      ScrollTrigger.create({
+        trigger: item,
+        start: "0% 20%",
+        markers: true,
+        onEnter: () => {
+          //this.workNum.textContent = String(index + 1).padStart(2, "0");
+          console.log(index);
+          let newColor = `rgb(${item.dataset.color})`
+            this.debouncedChangeBGcolor(newColor);
+            this.debouncedShowActiveItem(item);
+        },
+        onEnterBack: () => {
+          //this.workNum.textContent = String(index + 1).padStart(2, "0");
+          console.log(index);
+          let newColor = `rgb(${item.dataset.color})`
+          this.debouncedChangeBGcolor(newColor);
+          this.debouncedShowActiveItem(index);
+        },
+      });
+    });
+  }
+
   showActiveItem(target) {
     this.currIndex = this.worksName.findIndex((item) => {
       return item.dataset.name === target.dataset.work;
@@ -356,11 +387,13 @@ class WorkCategory {
         img.crossOrigin = "Anonymous";
         let color;
         if (img.complete) {
+          console.log(img)
           color = colorThief.getColor(img);
           item.setAttribute("data-color", color.join());
           resolve();
         } else {
           img.addEventListener("load", function () {
+            console.log("img2")
             color = colorThief.getColor(img);
             //console.log(color);
             item.setAttribute("data-color", color.join());
@@ -370,10 +403,18 @@ class WorkCategory {
       });
     });
 
-    Promise.all(loadPromises).then(() => {
+    Promise.allSettled(loadPromises).then(() => {
       //this.getText();
-      this.infiniteScroll();
+      //this.infiniteScroll();
+      console.log("All images loaded");
     });
+  }
+
+  changeBGcolor(newColor) {
+    this.tlChangeBG.set('.bg-layer-cover', {background: ()=>`linear-gradient(180deg, #fff 0%, ${newColor} 90%)`})
+    this.tlChangeBG.to('.bg-layer-cover', {opacity: 1, duration: 0.2})
+    this.tlChangeBG.set('.bg-layer', {background: ()=>`linear-gradient(180deg, #fff 0%, ${newColor} 90%)`})
+    this.tlChangeBG.set('.bg-layer-cover', {opacity: 0})
   }
 
   getText() {
