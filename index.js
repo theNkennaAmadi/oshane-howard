@@ -3,8 +3,10 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Flip } from "gsap/Flip";
 import Splitting from "splitting";
 import { Draggable } from "gsap/Draggable";
+import InertiaPlugin from "gsap/InertiaPlugin";
 
-gsap.registerPlugin(ScrollTrigger, Flip, Draggable);
+
+gsap.registerPlugin(ScrollTrigger, Flip, Draggable, InertiaPlugin);
 class Home {
   currIndex = 0;
   firstrun = true;
@@ -18,6 +20,8 @@ class Home {
     this.heroVisuals = [...container.querySelectorAll(".hero-visual-item")];
     this.heroGrid = container.querySelector(".hero-grid");
     this.init();
+
+
   }
 
   //Helper function to group Array
@@ -37,8 +41,12 @@ class Home {
 
     this.initSplitting();
     this.initFlip();
-    //this.addVisualsEventListeners();
+    this.addVisualsEventListeners();
   }
+
+
+
+
 
   initSplitting() {
     //Initialize Splitting, split the text into characters and get the results
@@ -241,7 +249,17 @@ class Home {
       type: "x,y",
       bounds: ".hero-grid",
       inertia: true,
-      ease: "expo.out",
+      ease: 'bounce.out',
+      throwProps: true,
+      edgeResistance: 0.75,
+      onDragStart: () => {
+        gsap.to(".hero-img", {scale: 1, ease: 'expo.out', duration: 1})
+        gsap.set(".hero-visual-item", { pointerEvents: "none" });
+      },
+      onDragEnd: () => {
+        gsap.to(".hero-img", {scale: 1.15, ease: 'expo.out', duration: 1.5})
+        gsap.set(".hero-visual-item", { pointerEvents: "auto" });
+      }
     });
   }
 }
