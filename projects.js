@@ -7,11 +7,12 @@ import * as Lottie from "lottie-web";
 
 gsap.registerPlugin(ScrollTrigger, Flip);
 const lottie = Webflow.require("lottie").lottie;
+
 class Projects {
   fadeOutTimeout = null;
   constructor(container) {
     this.container = container;
-    this.scrollContainer = container.querySelector(".work-wrapper");
+    this.scrollContainer = document.querySelector(".work-wrapper");
     this.invisible = [...container.querySelectorAll(".w-condition-invisible")];
     this.nextImage = container.querySelector(".next-up-image");
     this.videoControls = container.querySelector(".video-controls");
@@ -29,16 +30,46 @@ class Projects {
   }
 
   getScrollAmount() {
-    this.scrollContainerWidth = this.scrollContainer.scrollWidth;
-    console.log(this.scrollContainerWidth - window.innerWidth);
+    this.scrollContainerWidth =
+      this.scrollContainer.scrollWidth - window.innerWidth;
+    console.log(window.innerWidth);
     return -(this.scrollContainerWidth - window.innerWidth);
+  }
+
+  getinitScrollAmount() {
+    const images = Array.from(this.scrollContainer.querySelectorAll("img"));
+    const allImagesLoaded = images.map(
+      (img) =>
+        new Promise((resolve) => {
+          if (img.complete) {
+            resolve();
+          } else {
+            img.addEventListener("load", resolve);
+          }
+        })
+    );
+
+    Promise.all(allImagesLoaded).then(() => {
+      this.scrollContainerWidth = -(
+        this.scrollContainer.scrollWidth - window.innerWidth
+      );
+      //console.log(this.scrollContainerWidth);
+      this.initHorizontalScroll();
+      return -(this.scrollContainerWidth - window.innerWidth);
+    });
+
+    window.addEventListener("resize", () => {
+      this.scrollContainerWidth = -(
+        this.scrollContainer.scrollWidth - window.innerWidth
+      );
+    });
   }
 
   init() {
     Splitting();
+    this.getinitScrollAmount();
     this.splitText();
-    this.getScrollAmount();
-    this.initHorizontalScroll();
+    //this.initHorizontalScroll();
     if (this.scrollContainer.dataset.type === "Motion") {
       this.togglePlay();
     }
@@ -49,6 +80,7 @@ class Projects {
     const results = Splitting({ target: target, by: "lines" });
     this.words = document.querySelectorAll(".word");
     gsap.set(this.words, { yPercent: 120, opacity: 0 });
+    gsap.set(".work-info", { opacity: 1 });
     gsap.set(this.info.querySelectorAll(".word"), { yPercent: 0, opacity: 1 });
     this.words.forEach((word) => {
       let wrapper = document.createElement("span");
@@ -60,11 +92,10 @@ class Projects {
     gsap.to(lines, {
       yPercent: 0,
       opacity: 1,
-      duration: 0.75,
+      duration: 1.2,
       ease: "expo.out",
-      delay: 0.5,
+      delay: 0.3,
     });
-    // console.log(results);
   }
   initHorizontalScroll() {
     let mm = gsap.matchMedia();
@@ -72,12 +103,12 @@ class Projects {
     mm.add("(min-width: 480px)", () => {
       this.scrollContainer = this.container.querySelector(".work-wrapper");
       let horScroll = gsap.to(this.scrollContainer, {
-        x: this.getScrollAmount(),
+        x: () => this.scrollContainerWidth,
         ease: "none",
         scrollTrigger: {
           trigger: this.scrollContainer,
           start: "top top",
-          end: `+=${this.getScrollAmount() * -1}`,
+          end: () => `+=${this.scrollContainerWidth * -1}`,
           scrub: 1,
           pin: true,
           markers: true,
@@ -102,17 +133,16 @@ class Projects {
       });
     });
     mm.add("(max-width: 479px)", () => {
-      console.log("mobile");
       this.scrollContainer = this.container.querySelector(
         ".work-visuals-wrapper"
       );
       let horScroll = gsap.to(this.scrollContainer, {
-        x: this.getScrollAmount(),
+        x: () => this.scrollContainerWidth * 1.15,
         ease: "none",
         scrollTrigger: {
           trigger: this.scrollContainer,
           start: "top top",
-          end: `+=${this.getScrollAmount() * -1}`,
+          end: () => `+=${this.scrollContainerWidth * -1.15}`,
           scrub: 1,
           pin: true,
           markers: true,
@@ -178,12 +208,16 @@ class Projects {
         this.video.muted ? tlMute.reverse() : tlMute.play();
       } else {
         //video flip animation
+        let mm = gsap.matchMedia();
         const state = Flip.getState(this.media);
-        this.media.classList.toggle("active");
-        Flip.from(state, {
-          duration: 1.5,
-          ease: "power1.inOut",
+        mm.add("(min-width: 480px)", () => {
+          this.media.classList.toggle("active");
+          Flip.from(state, {
+            duration: 1.5,
+            ease: "power1.inOut",
+          });
         });
+
         if (isPaused) {
           this.togglePlayBtn(animation, 1, 3);
           this.video.play();

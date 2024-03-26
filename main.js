@@ -10,6 +10,7 @@ import { Nav, backgroundColorReset } from "./global.js";
 import WorkCategory from "./workCategory.js";
 import Home from "./index.js";
 import LoaderAnimation from "./loader.js";
+import Test from "./test.js";
 
 gsap.registerPlugin(ScrollTrigger, Observer);
 
@@ -101,8 +102,8 @@ barba.init({
       namespace: "work-category",
       beforeEnter(data) {
         let nextContainer = data.next.container;
-        backgroundColorReset(nextContainer);
-        navInstance = new Nav(nextContainer);
+        // backgroundColorReset(nextContainer);
+        //navInstance = new Nav(nextContainer);
         new WorkCategory(nextContainer);
       },
     },
@@ -118,6 +119,13 @@ barba.init({
     {
       namespace: "404",
       beforeEnter() {},
+    },
+    {
+      namespace: "test",
+      beforeEnter(data) {
+        let nextContainer = data.next.container;
+        new Test(nextContainer);
+      },
     },
   ],
   transitions: [

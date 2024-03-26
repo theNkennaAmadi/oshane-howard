@@ -37,7 +37,7 @@ class Home {
 
     this.initSplitting();
     this.initFlip();
-    this.addVisualsEventListeners();
+    //this.addVisualsEventListeners();
   }
 
   initSplitting() {
@@ -120,7 +120,7 @@ class Home {
 
     //Scale the hero list wrapper so that it looks like it's zooming in
     gsap.to(".hero-visual-list-wrapper", {
-      scale: 1.2,
+      scale: 1.5,
       ease: "expo.out",
       scrollTrigger: {
         trigger: ".hero-visual",

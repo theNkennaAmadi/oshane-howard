@@ -165,12 +165,14 @@ class LoaderAnimation {
         {
           // Starting state for 'inner' elements' animation
           xPercent: 0,
-          filter: "brightness(10%)", // CSS filters to adjust color
+          //filter: "brightness(10%)", // CSS filters to adjust color
+          // force3D: true, // Force 3D rendering for smoother animations
         },
         {
           // Animation target state
           stagger: this.animationSettings.delayFactor * 1.2, // Stagger settings similar to above
-          filter: "brightness(100%)", // Full brightness
+          //filter: "brightness(100%)", // Full brightness
+          //force3D: true, // Force 3D rendering for smoother animations
         },
         0
       )
