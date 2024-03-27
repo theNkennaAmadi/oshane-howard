@@ -98,7 +98,7 @@ const distortionShader = {
   fragmentShader: fragment,
 };
 
-class App {
+class WorkCategory {
   lines = [];
   tl = gsap.timeline();
   targetElement = null;
@@ -535,8 +535,6 @@ class App {
     });
   }
 }
-
-new App(document.querySelector(".page-wrapper"));
 
 function lerp(start, end, amount) {
   return start * (1 - amount) + end * amount;
