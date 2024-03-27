@@ -51,7 +51,7 @@ barba.hooks.beforeLeave((data) => {
   //lenis.destroy();
 });
 
-let firstLoad = false;
+let firstLoad = true;
 
 barba.init({
   preventRunning: true,
@@ -103,7 +103,7 @@ barba.init({
       beforeEnter(data) {
         let nextContainer = data.next.container;
         // backgroundColorReset(nextContainer);
-        //navInstance = new Nav(nextContainer);
+        navInstance = new Nav(nextContainer);
         new WorkCategory(nextContainer);
       },
     },

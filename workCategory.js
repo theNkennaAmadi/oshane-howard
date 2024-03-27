@@ -1,5 +1,6 @@
 import gsap from "gsap";
 import "splitting/dist/splitting.css";
+import * as THREE from "https://cdn.skypack.dev/-/three@v0.141.0-LAbt1oof2qE22eZZS1lO/dist=es2019,mode=imports/optimized/three.js";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import normalizeWheel from "https://cdn.skypack.dev/normalize-wheel@1.0.1";
 import {
@@ -7,16 +8,113 @@ import {
   RenderPass,
   ShaderPass,
 } from "https://cdn.skypack.dev/postprocessing@6.27.0";
-import * as THREE from 'three';
-import fragment from './fragment.glsl'
-import vertex from './vertex.glsl';
+import fragment from "./fragment.glsl";
+import vertex from "./vertex.glsl";
+import Splitting from "splitting";
+import { debounce } from "./global.js";
+import ColorThief from "colorthief";
 
 gsap.registerPlugin(ScrollTrigger);
 
-class WorkCategory {
+let workItems = [...document.querySelectorAll(".work-cc-item")];
+let images = workItems.map((item) => ({
+  name: item.dataset.name,
+  slug: `${window.location.origin}/work/${item.dataset.slug}`,
+  image: item.querySelector("img").src,
+}));
+
+let factor = images.length % 2 === 0 ? 0.5 : 0;
+
+const GRID_GAP = 1;
+const TILE_SIZE = 6;
+const totalSize = images.length;
+const TILE_SPACE = TILE_SIZE + GRID_GAP;
+const GRID_SIZE = TILE_SPACE * images.length;
+const TOTAL_GRID_SIZE = GRID_SIZE * images.length;
+const IMAGE_RES = 1920;
+console.log(GRID_SIZE);
+console.log(TOTAL_GRID_SIZE);
+
+//image tiles
+const TILES = [...images];
+
+TILES.forEach((tile, index) => {
+  tile.pos = [
+    0,
+    TILE_SPACE * (-Math.floor(TILES.length / 2) + factor + index),
+    0,
+  ];
+});
+
+let sortedTitles = TILES.toSorted((a, b) => {
+  let aValue = a.pos[1];
+  let bValue = b.pos[1];
+
+  // Special handling to ensure 0 comes first
+  if (aValue === 0) return -1;
+  if (bValue === 0) return 1;
+
+  // For negative numbers, sort in descending order (so that -7 comes before -14)
+  if (aValue < 0 && bValue < 0) return bValue - aValue;
+
+  // For positive numbers, also sort in descending order
+  if (aValue > 0 && bValue > 0) return bValue - aValue;
+
+  // Ensure negative numbers come before positive numbers
+  if (aValue < 0) return -1;
+  if (bValue < 0) return 1;
+});
+
+console.log(sortedTitles);
+
+// clone groups
+const TILE_GROUPS = TILES.map((tile) => {
+  return { pos: [0, 0, 0], name: tile.name };
+});
+
+TILE_GROUPS.forEach((tile, index) => {
+  tile.pos = [
+    0,
+    GRID_SIZE * (-Math.floor(TILE_GROUPS.length / 2) + factor + index),
+    0,
+  ];
+});
+
+let oldIndex = -1;
+
+const reducedMotionMediaQuery = window.matchMedia(
+  "(prefers-reduced-motion: reduce)"
+);
+
+// full screen postprocessing shader
+const distortionShader = {
+  uniforms: {
+    tDiffuse: { value: null },
+    uStrength: { value: new THREE.Vector2() },
+    uScreenRes: { value: new THREE.Vector2() },
+    uReducedMotion: { value: reducedMotionMediaQuery.matches ? 1.0 : 0.0 },
+  },
+  vertexShader: vertex,
+  fragmentShader: fragment,
+};
+
+class App {
+  lines = [];
+  tl = gsap.timeline();
+  targetElement = null;
+  prevIndex = 0;
+  currIndex = 1;
+  colorThief = new ColorThief();
+  tlChangeBG = gsap.timeline();
   constructor(container) {
-    this.container = container;
-    this.initVariables();
+    this.worksName = [...container.querySelectorAll(".works-name-item")];
+    this.workNum = container.querySelector(".work-num");
+    this.workTotal = container.querySelector(".work-total");
+    this.debouncedShowActiveItem = debounce(
+      this.showActiveItem.bind(this),
+      200
+    );
+    this.splitText();
     this.init();
     this.setupRenderer();
     this.setupCamera();
@@ -31,92 +129,50 @@ class WorkCategory {
     this.setupListeners();
     this.setupReducedMotionListeners();
 
-    this.compose()
-
     this.render();
   }
 
-  initVariables(){
-    this.workItems = [...document.querySelectorAll(".work-cc-item")];
-    this.images = this.workItems.map((item) => ({
-      name: item.dataset.name,
-      slug: `${window.location.origin}/work/${item.dataset.slug}`,
-      image: item.querySelector("img").src,
-    }));
-
-    this.factor = this.images.length % 2 === 0 ? 0.5 : 0;
-
-    this.GRID_GAP = 1;
-    this.TILE_SIZE = 6;
-    this.totalSize = this.images.length;
-    this.TILE_SPACE = this.TILE_SIZE + this.GRID_GAP;
-    this.GRID_SIZE = this.TILE_SPACE * this.totalSize;
-    this.TOTAL_GRID_SIZE = this.GRID_SIZE * this.totalSize;
-
-//image tiles
-    this.TILES = [...this.images];
-
-    this.TILES.forEach((tile, index) => {
-      tile.pos = [
-        0,
-        this.TILE_SPACE * (-Math.floor(this.TILES.length / 2) + this.factor + index),
-        0,
-      ];
+  splitText() {
+    this.workTotal.textContent = String(this.worksName.length).padStart(2, "0");
+    const target = [...document.querySelectorAll("[split-target]")];
+    const results = Splitting({ target: target, by: "lines" });
+    //console.log(results);
+    this.words = document.querySelectorAll(".word");
+    gsap.set(this.words, { yPercent: 120, opacity: 0 });
+    this.words.forEach((word) => {
+      let wrapper = document.createElement("span");
+      wrapper.classList.add("char-wrap");
+      word.parentNode.insertBefore(wrapper, word);
+      wrapper.appendChild(word);
     });
-
-    this.sortedTitles = this.TILES.toSorted((a, b) => {
-      let aValue = a.pos[1];
-      let bValue = b.pos[1];
-
-      // Special handling to ensure 0 comes first
-      if (aValue === 0) return -1;
-      if (bValue === 0) return 1;
-
-      // For negative numbers, sort in descending order (so that -7 comes before -14)
-      if (aValue < 0 && bValue < 0) return bValue - aValue;
-
-      // For positive numbers, also sort in descending order
-      if (aValue > 0 && bValue > 0) return bValue - aValue;
-
-      // Ensure negative numbers come before positive numbers
-      if (aValue < 0) return -1;
-      if (bValue < 0) return 1;
-    });
-
-    console.log(this.sortedTitles);
-
-// clone groups
-    this.TILE_GROUPS = this.TILES.map((tile) => {
-      return { pos: [0, 0, 0], name: tile.name };
-    });
-
-    this.TILE_GROUPS.forEach((tile, index) => {
-      tile.pos = [
-        0,
-        this.GRID_SIZE * (-Math.floor(this.TILE_GROUPS.length / 2) + this.factor + index),
-        0,
-      ];
-    });
-
-    this.reducedMotionMediaQuery = window.matchMedia(
-        "(prefers-reduced-motion: reduce)"
-    );
-
-// full screen postprocessing shader
-    this.distortionShader = {
-      uniforms: {
-        tDiffuse: { value: null },
-        uStrength: { value: new THREE.Vector2() },
-        uScreenRes: { value: new THREE.Vector2() },
-        uReducedMotion: { value: this.reducedMotionMediaQuery.matches ? 1.0 : 0.0 },
-      },
-      vertexShader: vertex,
-      fragmentShader: fragment,
-    };
+    this.lines = results.map((result) => result.lines);
+    //console.log(this.lines);
+    // console.log(results);
+    gsap.to(".works-name-item", { opacity: 1 });
   }
 
-  lerp(start, end, amount) {
-    return start * (1 - amount) + end * amount;
+  showActiveItem(target) {
+    this.currIndex = this.worksName.findIndex((item) => {
+      return item.dataset.name === target.dataset.name;
+    });
+    console.log(this.currIndex);
+
+    this.workNum.textContent = String(this.currIndex + 1).padStart(2, "0");
+
+    if (this.currIndex !== this.prevIndex) {
+      this.tl.to(this.lines[this.prevIndex], {
+        yPercent: 120,
+        opacity: 0,
+        duration: 0.2,
+      });
+      this.tl.to(this.lines[this.currIndex], {
+        yPercent: 0,
+        opacity: 1,
+        duration: 0.2,
+      });
+    }
+
+    this.prevIndex = this.currIndex;
   }
 
   init() {
@@ -140,7 +196,7 @@ class WorkCategory {
         y: 0,
       },
     };
-    this.TILE_GROUPS.forEach((obj) => {
+    TILE_GROUPS.forEach((obj) => {
       obj.offset = { x: 0, y: 0 };
       obj.group = new THREE.Group();
     });
@@ -151,9 +207,7 @@ class WorkCategory {
       antialias: true,
       alpha: true,
     });
-    this.container
-      .querySelector("#workCategory")
-      .appendChild(this.renderer.domElement);
+    document.body.appendChild(this.renderer.domElement);
     this.renderer.setClearColor(0x000000);
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.setPixelRatio(Math.min(2, window.devicePixelRatio));
@@ -173,23 +227,23 @@ class WorkCategory {
   setupScene() {
     this.scene = new THREE.Scene();
     this.addObjects();
+    // this.addLighting();
   }
 
   setupComposer() {
     this.composer = new EffectComposer(this.renderer);
-    this.renderPass = new RenderPass(this.scene, this.camera);
-    this.composer.addPass(this.renderPass);
-    let m = this.distortionShader
-    this.shaderPass = new ShaderPass(
-      new THREE.ShaderMaterial(m),
+    const renderPass = new RenderPass(this.scene, this.camera);
+    this.composer.addPass(renderPass);
+    const shaderPass = new ShaderPass(
+      new THREE.ShaderMaterial(distortionShader),
       "tDiffuse"
     );
-    this.composer.addPass(this.shaderPass);
+    this.composer.addPass(shaderPass);
   }
 
   addObjects() {
-    this.TILES.forEach((tile) => {
-      let mesh = new THREE.Mesh();
+    TILES.forEach((tile, i) => {
+      let mesh;
       let imageTexture = new THREE.TextureLoader().load(tile.image, (tex) => {
         tex.needsUpdate = true;
         mesh.scale.set(
@@ -198,24 +252,23 @@ class WorkCategory {
           1.0
         );
       });
-      let geometry = new THREE.PlaneGeometry(this.TILE_SIZE, this.TILE_SIZE);
+      let geometry = new THREE.PlaneBufferGeometry(TILE_SIZE, TILE_SIZE);
       let material = new THREE.MeshBasicMaterial({ map: imageTexture });
       mesh = new THREE.Mesh(geometry, material);
       mesh.position.set(...tile.pos);
-      this.TILE_GROUPS.forEach((obj) => obj.group.add(mesh.clone()));
+      TILE_GROUPS.forEach((obj) => obj.group.add(mesh.clone()));
     });
-    this.TILE_GROUPS.forEach((obj) => this.scene.add(obj.group));
-
+    TILE_GROUPS.forEach((obj) => this.scene.add(obj.group));
   }
 
   setPositions() {
     let scrollX = this.scroll?.current.x;
     let scrollY = this.scroll?.current.y;
-    this.TILE_GROUPS.forEach(({ offset, pos, group }, i) => {
+    TILE_GROUPS.forEach(({ offset, pos, group }, i) => {
       let posX = pos[0] + scrollX + offset.x;
       let posY = pos[1] + scrollY + offset.y;
       let dir = this.direction;
-      let groupOff = this.GRID_SIZE / 2;
+      let groupOff = GRID_SIZE / 2;
 
       let viewportOff = {
         x: this.viewport.width / 2,
@@ -231,15 +284,15 @@ class WorkCategory {
       // offset is added to the grid position on next call
       // horizontal
       if (dir.x < 0 && posX - groupOff > viewportOff.x) {
-        this.TILE_GROUPS[i].offset.x -= this.TOTAL_GRID_SIZE;
+        TILE_GROUPS[i].offset.x -= TOTAL_GRID_SIZE;
       } else if (dir.x > 0 && posX + groupOff < -viewportOff.x) {
-        this.TILE_GROUPS[i].offset.x += this.TOTAL_GRID_SIZE;
+        TILE_GROUPS[i].offset.x += TOTAL_GRID_SIZE;
       }
       // vertical
       if (dir.y < 0 && posY - groupOff > viewportOff.y) {
-        this.TILE_GROUPS[i].offset.y -= this.TOTAL_GRID_SIZE;
+        TILE_GROUPS[i].offset.y -= TOTAL_GRID_SIZE;
       } else if (dir.y > 0 && posY + groupOff < -viewportOff.y) {
-        this.TILE_GROUPS[i].offset.y += this.TOTAL_GRID_SIZE;
+        TILE_GROUPS[i].offset.y += TOTAL_GRID_SIZE;
       }
     });
   }
@@ -264,7 +317,7 @@ class WorkCategory {
     }
 
     // update screen res uniform
-    this.distortionShader.uniforms.uScreenRes.value = new THREE.Vector2(
+    distortionShader.uniforms.uScreenRes.value = new THREE.Vector2(
       this.screen.width,
       this.screen.height
     );
@@ -305,18 +358,18 @@ class WorkCategory {
     };
   }
 
-  onTouchUp() {
+  onTouchUp(e) {
     this.isDown = false;
   }
 
   onWheel(e) {
-    e.preventDefault();
+    //e.preventDefault();
     let normalized = normalizeWheel(e);
     //this.scroll.target.x -= normalized.pixelX * this.scroll.scale;
     this.scroll.target.y += normalized.pixelY * this.scroll.scale;
   }
 
-  onClick() {
+  onClick(e) {
     // update the picking ray with the camera and mouse position
     this.raycaster.setFromCamera(this.mouse, this.camera);
 
@@ -332,7 +385,7 @@ class WorkCategory {
       let intersectedObject = intersects[i].object;
 
       // Find the tile that corresponds to the intersected object
-      let tile = this.TILES.find((tile) => {
+      let tile = TILES.find((tile) => {
         let tilePosition = new THREE.Vector3(...tile.pos);
         return tilePosition.equals(intersectedObject.position);
       });
@@ -366,12 +419,12 @@ class WorkCategory {
       "#reduced-motion-toggle input"
     );
 
-    if (this.reducedMotionMediaQuery.matches) {
+    if (reducedMotionMediaQuery.matches) {
       reducedMotionCheckbox.checked = true;
     }
 
     reducedMotionCheckbox.addEventListener("change", (e) => {
-      this.distortionShader.uniforms.uReducedMotion.value = e.target.checked
+      distortionShader.uniforms.uReducedMotion.value = e.target.checked
         ? 1.0
         : 0.0;
     });
@@ -381,32 +434,38 @@ class WorkCategory {
     let centeredTileGroupIndex = null;
     let minDistanceToCenter = Infinity;
 
-    this.TILE_GROUPS.forEach((group, index) => {
+    TILE_GROUPS.forEach((group, index) => {
       let posY = group.group.position.y;
 
       // Normalize position Y within the total grid range to positive values for easier comparison
       let normalizedPosY =
-        ((posY % this.TOTAL_GRID_SIZE) + this.TOTAL_GRID_SIZE) % this.TOTAL_GRID_SIZE;
+        ((posY % TOTAL_GRID_SIZE) + TOTAL_GRID_SIZE) % TOTAL_GRID_SIZE;
 
-      let percentage = (normalizedPosY % this.GRID_SIZE) / this.GRID_SIZE;
-
-      console.log(percentage)
-
+      let percentage = (normalizedPosY % GRID_SIZE) / GRID_SIZE;
 
       if (index === 3) {
-        let activeIndex = Math.floor(percentage * this.totalSize);
-        let name = this.sortedTitles[activeIndex].name;
-        console.log(name);
-        document.querySelector(".name").textContent = name;
+        let activeIndex = Math.floor(percentage * images.length);
+        let name = sortedTitles[activeIndex].name;
+        let item = this.worksName.find((item) => item.dataset.name === name);
+        //console.log(item);
+        if (oldIndex !== activeIndex) {
+          this.debouncedShowActiveItem(item);
+          oldIndex = activeIndex;
+        }
+        //console.log(name);
+        //document.querySelector(".name").textContent = name;
         //console.log(percentage);
       }
 
       // Calculate distance from the nearest center position
       let distanceToCenter = Math.min(
-        Math.abs(normalizedPosY),
-        Math.abs(normalizedPosY - this.GRID_SIZE) % this.GRID_SIZE
+        Math.abs(normalizedPosY - 0),
+        Math.abs(normalizedPosY - GRID_SIZE) % GRID_SIZE
       );
 
+      if (index === 4) {
+        //console.log("Distance to Center:", distanceToCenter);
+      }
 
       // Update the closest tile group to center if this one is closer
       if (distanceToCenter < minDistanceToCenter) {
@@ -420,28 +479,22 @@ class WorkCategory {
     // Perform any additional logic with centeredTileGroupIndex
   }
 
-  compose(){
-    console.log(this.composer)
-    this.composer.render();
-    console.log('hello')
-  }
-
   render() {
-    console.log('hello');
+    this.composer.render();
+    // this.renderer.render(this.scene, this.camera);
+    //console.log(TILE_GROUPS[4].group.position.y);
+    //console.log(TILE_GROUPS[4].name);
     this.findCenteredTileGroup();
 
     requestAnimationFrame(() => {
       this.scroll.current = {
-        x: this.lerp(this.scroll.current.x, this.scroll.target.x, this.scroll.ease),
-        y: this.lerp(this.scroll.current.y, this.scroll.target.y, this.scroll.ease),
+        x: lerp(this.scroll.current.x, this.scroll.target.x, this.scroll.ease),
+        y: lerp(this.scroll.current.y, this.scroll.target.y, this.scroll.ease),
       };
       //console.log(this.scroll.current.y % TOTAL_GRID_SIZE);
-      /*
       let activeIndex =
-        Math.round((this.scroll.current.y % this.TOTAL_GRID_SIZE) / this.totalSize) %
+        Math.round((this.scroll.current.y % TOTAL_GRID_SIZE) / images.length) %
         images.length;
-
-       */
       //console.log(sortedTitles[activeIndex].name);
 
       // vertical dir
@@ -457,7 +510,7 @@ class WorkCategory {
         this.direction.x = 1;
       }
 
-      this.distortionShader.uniforms.uStrength.value = new THREE.Vector2(
+      distortionShader.uniforms.uStrength.value = new THREE.Vector2(
         Math.abs(
           ((this.scroll.current.x - this.scroll.last.x) / this.screen.width) *
             10
@@ -481,6 +534,12 @@ class WorkCategory {
       this.render();
     });
   }
+}
+
+new App(document.querySelector(".page-wrapper"));
+
+function lerp(start, end, amount) {
+  return start * (1 - amount) + end * amount;
 }
 
 export default WorkCategory;

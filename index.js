@@ -5,7 +5,6 @@ import Splitting from "splitting";
 import { Draggable } from "gsap/Draggable";
 import InertiaPlugin from "gsap/InertiaPlugin";
 
-
 gsap.registerPlugin(ScrollTrigger, Flip, Draggable, InertiaPlugin);
 class Home {
   currIndex = 0;
@@ -19,9 +18,8 @@ class Home {
     this.heroVisualList = container.querySelector(".hero-visual-list");
     this.heroVisuals = [...container.querySelectorAll(".hero-visual-item")];
     this.heroGrid = container.querySelector(".hero-grid");
+    this.initFlip();
     this.init();
-
-
   }
 
   //Helper function to group Array
@@ -40,13 +38,9 @@ class Home {
     this.visualHighlight.appendChild(this.visualInner);
 
     this.initSplitting();
-    this.initFlip();
+
     this.addVisualsEventListeners();
   }
-
-
-
-
 
   initSplitting() {
     //Initialize Splitting, split the text into characters and get the results
@@ -71,72 +65,75 @@ class Home {
   }
 
   initFlip() {
-    let firstrun = this.firstrun;
-    let updatedText = false;
+    setTimeout(() => {
+      let firstrun = this.firstrun;
+      let updatedText = false;
 
-    //hide the Oshane logo text and change nav color to black
-    let tlUpdate = gsap.timeline({ paused: true });
-    tlUpdate.set(".hero-text", { display: "none" });
-    tlUpdate.to(".nav-wrapper", { color: "black" });
+      //hide the Oshane logo text and change nav color to black
+      let tlUpdate = gsap.timeline({ paused: true });
+      tlUpdate.set(".hero-text", { display: "none" });
+      tlUpdate.to(".nav-wrapper", { color: "black" });
 
-    //Flip the hero visual items from fullscreen to grid
-    let state = Flip.getState(".hero-visual-list, .hero-visual-item");
-    document.querySelector(".hero-visual-list").classList.toggle("flip");
-    Flip.from(state, {
-      duration: 2,
-      ease: "expo.inOut",
-      simple: true,
-      scrollTrigger: {
-        trigger: ".hero-grid",
-        start: "top top",
-        end: () => "+=200%",
-        onUpdate: (self) => {
-          if (self.progress > 0.4) {
-            if (!updatedText) {
-              tlUpdate.play();
-              updatedText = !updatedText;
+      //Flip the hero visual items from fullscreen to grid
+      let state = Flip.getState(".hero-visual-list, .hero-visual-item");
+      document.querySelector(".hero-visual-list").classList.toggle("flip");
+      Flip.from(state, {
+        duration: 2,
+        ease: "expo.inOut",
+        simple: true,
+        immediateRender: false,
+        scrollTrigger: {
+          trigger: ".hero-grid",
+          start: "top 0%",
+          end: () => "+=200%",
+          onUpdate: (self) => {
+            if (self.progress > 0.4) {
+              if (!updatedText) {
+                tlUpdate.play();
+                updatedText = !updatedText;
+              }
+            } else {
+              if (updatedText) {
+                tlUpdate.reverse();
+                updatedText = !updatedText;
+              }
             }
-          } else {
-            if (updatedText) {
-              tlUpdate.reverse();
-              updatedText = !updatedText;
-            }
-          }
+          },
+          onEnterBack: () => {
+            Draggable.get(".hero-visual-list-wrapper").kill();
+            gsap.to(".hero-visual-list-wrapper", {
+              x: 0,
+              y: 0,
+              duration: 1,
+              ease: "power3.inOut",
+            });
+            gsap.to(".hero-visual-item", { pointerEvents: "none" });
+            gsap.to(".char", { yPercent: 120, opacity: 0 });
+            firstrun = true;
+          },
+          onLeave: () => {
+            gsap.to(".hero-visual-item", { pointerEvents: "auto" });
+            gsap.to(".home-works-name-wrapper", { opacity: 1 });
+            this.activateDraggable();
+          },
+          pin: true,
+          scrub: 1,
+          markers: false,
         },
-        onEnterBack: () => {
-          Draggable.get(".hero-visual-list-wrapper").kill();
-          gsap.to(".hero-visual-list-wrapper", {
-            x: 0,
-            y: 0,
-            duration: 1,
-            ease: "power3.inOut",
-          });
-          gsap.to(".hero-visual-item", { pointerEvents: "none" });
-          gsap.to(".char", { yPercent: 120, opacity: 0 });
-          firstrun = true;
-        },
-        onLeave: () => {
-          gsap.to(".hero-visual-item", { pointerEvents: "auto" });
-          gsap.to(".home-works-name-wrapper", { opacity: 1 });
-          this.activateDraggable();
-        },
-        pin: true,
-        scrub: 1,
-        markers: true,
-      },
-    });
+      });
 
-    //Scale the hero list wrapper so that it looks like it's zooming in
-    gsap.to(".hero-visual-list-wrapper", {
-      scale: 1.5,
-      ease: "expo.out",
-      scrollTrigger: {
-        trigger: ".hero-visual",
-        start: "top top",
-        end: () => "+=200%",
-        scrub: 1,
-      },
-    });
+      //Scale the hero list wrapper so that it looks like it's zooming in
+      gsap.to(".hero-visual-list-wrapper", {
+        scale: 1.5,
+        ease: "expo.out",
+        scrollTrigger: {
+          trigger: ".hero-visual",
+          start: "top top",
+          end: () => "+=200%",
+          scrub: 1,
+        },
+      });
+    }, 1000);
   }
 
   addVisualsEventListeners() {
@@ -249,17 +246,17 @@ class Home {
       type: "x,y",
       bounds: ".hero-grid",
       inertia: true,
-      ease: 'bounce.out',
+      ease: "expo.inOut",
       throwProps: true,
       edgeResistance: 0.75,
       onDragStart: () => {
-        gsap.to(".hero-img", {scale: 1, ease: 'expo.out', duration: 1})
-        gsap.set(".hero-visual-item", { pointerEvents: "none" });
+        // gsap.to(".hero-img", { scale: 1, ease: "expo.out", duration: 1 });
+        //gsap.set(".hero-visual-item", { pointerEvents: "none" });
       },
       onDragEnd: () => {
-        gsap.to(".hero-img", {scale: 1.15, ease: 'expo.out', duration: 1.5})
-        gsap.set(".hero-visual-item", { pointerEvents: "auto" });
-      }
+        // gsap.to(".hero-img", { scale: 1.15, ease: "expo.out", duration: 1.5 });
+        //gsap.set(".hero-visual-item", { pointerEvents: "auto" });
+      },
     });
   }
 }
