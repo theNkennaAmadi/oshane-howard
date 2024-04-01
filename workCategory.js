@@ -1,7 +1,7 @@
 import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import "splitting/dist/splitting.css";
 import * as THREE from "https://cdn.skypack.dev/-/three@v0.141.0-LAbt1oof2qE22eZZS1lO/dist=es2019,mode=imports/optimized/three.js";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import normalizeWheel from "https://cdn.skypack.dev/normalize-wheel@1.0.1";
 import {
   EffectComposer,
@@ -16,104 +16,25 @@ import ColorThief from "colorthief";
 
 gsap.registerPlugin(ScrollTrigger);
 
-let workItems = [...document.querySelectorAll(".work-cc-item")];
-let images = workItems.map((item) => ({
-  name: item.dataset.name,
-  slug: `${window.location.origin}/work/${item.dataset.slug}`,
-  image: item.querySelector("img").src,
-}));
-
-let factor = images.length % 2 === 0 ? 0.5 : 0;
-
-const GRID_GAP = 1;
-const TILE_SIZE = 6;
-const totalSize = images.length;
-const TILE_SPACE = TILE_SIZE + GRID_GAP;
-const GRID_SIZE = TILE_SPACE * images.length;
-const TOTAL_GRID_SIZE = GRID_SIZE * images.length;
-const IMAGE_RES = 1920;
-console.log(GRID_SIZE);
-console.log(TOTAL_GRID_SIZE);
-
-//image tiles
-const TILES = [...images];
-
-TILES.forEach((tile, index) => {
-  tile.pos = [
-    0,
-    TILE_SPACE * (-Math.floor(TILES.length / 2) + factor + index),
-    0,
-  ];
-});
-
-let sortedTitles = TILES.toSorted((a, b) => {
-  let aValue = a.pos[1];
-  let bValue = b.pos[1];
-
-  // Special handling to ensure 0 comes first
-  if (aValue === 0) return -1;
-  if (bValue === 0) return 1;
-
-  // For negative numbers, sort in descending order (so that -7 comes before -14)
-  if (aValue < 0 && bValue < 0) return bValue - aValue;
-
-  // For positive numbers, also sort in descending order
-  if (aValue > 0 && bValue > 0) return bValue - aValue;
-
-  // Ensure negative numbers come before positive numbers
-  if (aValue < 0) return -1;
-  if (bValue < 0) return 1;
-});
-
-console.log(sortedTitles);
-
-// clone groups
-const TILE_GROUPS = TILES.map((tile) => {
-  return { pos: [0, 0, 0], name: tile.name };
-});
-
-TILE_GROUPS.forEach((tile, index) => {
-  tile.pos = [
-    0,
-    GRID_SIZE * (-Math.floor(TILE_GROUPS.length / 2) + factor + index),
-    0,
-  ];
-});
-
-let oldIndex = -1;
-
-const reducedMotionMediaQuery = window.matchMedia(
-  "(prefers-reduced-motion: reduce)"
-);
-
-// full screen postprocessing shader
-const distortionShader = {
-  uniforms: {
-    tDiffuse: { value: null },
-    uStrength: { value: new THREE.Vector2() },
-    uScreenRes: { value: new THREE.Vector2() },
-    uReducedMotion: { value: reducedMotionMediaQuery.matches ? 1.0 : 0.0 },
-  },
-  vertexShader: vertex,
-  fragmentShader: fragment,
-};
-
 class WorkCategory {
   lines = [];
   tl = gsap.timeline();
   targetElement = null;
-  prevIndex = 0;
+  prevIndex = null;
   currIndex = 1;
   colorThief = new ColorThief();
   tlChangeBG = gsap.timeline();
   constructor(container) {
     this.worksName = [...container.querySelectorAll(".works-name-item")];
+    this.invisible = [...container.querySelectorAll(".w-condition-invisible")];
+    this.remove();
     this.workNum = container.querySelector(".work-num");
     this.workTotal = container.querySelector(".work-total");
     this.debouncedShowActiveItem = debounce(
       this.showActiveItem.bind(this),
       200
     );
+    this.initParameters();
     this.splitText();
     this.init();
     this.setupRenderer();
@@ -130,6 +51,99 @@ class WorkCategory {
     this.setupReducedMotionListeners();
 
     this.render();
+  }
+
+  remove() {
+    this.invisible.map((el) => el.remove());
+  }
+
+  initParameters() {
+    this.workItems = [...document.querySelectorAll(".work-cc-item")];
+    this.images = this.workItems.map((item) => ({
+      name: item.dataset.name,
+      slug: `${window.location.origin}/work/${item.dataset.slug}`,
+      image: item.querySelector("img").src,
+      video: item.querySelector("video")?.src,
+    }));
+    console.log(this.images);
+
+    this.factor = this.images.length % 2 === 0 ? 0.5 : 0;
+
+    this.GRID_GAP = 1;
+    this.TILE_SIZE = 6;
+    this.totalSize = this.images.length;
+    this.TILE_SPACE = this.TILE_SIZE + this.GRID_GAP;
+    this.GRID_SIZE = this.TILE_SPACE * this.images.length;
+    this.TOTAL_GRID_SIZE = this.GRID_SIZE * this.images.length;
+    //console.log(this.GRID_SIZE);
+    //console.log(this.TOTAL_GRID_SIZE);
+
+    //image tiles
+    this.TILES = [...this.images];
+
+    this.TILES.forEach((tile, index) => {
+      tile.pos = [
+        0,
+        this.TILE_SPACE *
+          (-Math.floor(this.TILES.length / 2) + this.factor + index),
+        0,
+      ];
+    });
+
+    this.sortedTitles = this.TILES.toSorted((a, b) => {
+      let aValue = a.pos[1];
+      let bValue = b.pos[1];
+
+      // Special handling to ensure 0 comes first
+      if (aValue === 0) return -1;
+      if (bValue === 0) return 1;
+
+      // For negative numbers, sort in descending order (so that -7 comes before -14)
+      if (aValue < 0 && bValue < 0) return bValue - aValue;
+
+      // For positive numbers, also sort in descending order
+      if (aValue > 0 && bValue > 0) return bValue - aValue;
+
+      // Ensure negative numbers come before positive numbers
+      if (aValue < 0) return -1;
+      if (bValue < 0) return 1;
+    });
+
+    console.log(this.sortedTitles);
+
+    // clone groups
+    this.TILE_GROUPS = this.TILES.map((tile) => {
+      return { pos: [0, 0, 0], name: tile.name };
+    });
+
+    this.TILE_GROUPS.forEach((tile, index) => {
+      tile.pos = [
+        0,
+        this.GRID_SIZE *
+          (-Math.floor(this.TILE_GROUPS.length / 2) + this.factor + index),
+        0,
+      ];
+    });
+
+    this.oldIndex = -1;
+
+    this.reducedMotionMediaQuery = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    );
+
+    // full screen postprocessing shader
+    this.distortionShader = {
+      uniforms: {
+        tDiffuse: { value: null },
+        uStrength: { value: new THREE.Vector2() },
+        uScreenRes: { value: new THREE.Vector2() },
+        uReducedMotion: {
+          value: this.reducedMotionMediaQuery.matches ? 1.0 : 0.0,
+        },
+      },
+      vertexShader: vertex,
+      fragmentShader: fragment,
+    };
   }
 
   splitText() {
@@ -155,7 +169,7 @@ class WorkCategory {
     this.currIndex = this.worksName.findIndex((item) => {
       return item.dataset.name === target.dataset.name;
     });
-    console.log(this.currIndex);
+    console.log(this.currIndex, this.prevIndex);
 
     this.workNum.textContent = String(this.currIndex + 1).padStart(2, "0");
 
@@ -196,7 +210,7 @@ class WorkCategory {
         y: 0,
       },
     };
-    TILE_GROUPS.forEach((obj) => {
+    this.TILE_GROUPS.forEach((obj) => {
       obj.offset = { x: 0, y: 0 };
       obj.group = new THREE.Group();
     });
@@ -235,40 +249,72 @@ class WorkCategory {
     const renderPass = new RenderPass(this.scene, this.camera);
     this.composer.addPass(renderPass);
     const shaderPass = new ShaderPass(
-      new THREE.ShaderMaterial(distortionShader),
+      new THREE.ShaderMaterial(this.distortionShader),
       "tDiffuse"
     );
     this.composer.addPass(shaderPass);
   }
 
   addObjects() {
-    TILES.forEach((tile, i) => {
-      let mesh;
-      let imageTexture = new THREE.TextureLoader().load(tile.image, (tex) => {
-        tex.needsUpdate = true;
-        mesh.scale.set(
-          1.0,
-          tex.image.naturalWidth / tex.image.naturalHeight,
-          1.0
+    this.TILES.forEach((tile, i) => {
+      let isVideo = tile.video && tile.video !== "";
+
+      if (isVideo) {
+        let video = document.createElement("video");
+        video.crossOrigin = "anonymous"; // Add this line
+        video.src = tile.video;
+        video.loop = true;
+        video.muted = true;
+        video.autoplay = true;
+        video.setAttribute("playsinline", "");
+        video.play().catch((e) => console.error("Video play failed", e));
+
+        let texture = new THREE.VideoTexture(video);
+        texture.minFilter = THREE.LinearFilter;
+        texture.magFilter = THREE.LinearFilter;
+        texture.format = THREE.RGBAFormat;
+
+        // Wait for the video to load to adjust UV mapping
+        video.onloadedmetadata = () => {
+          adjustUVs(mesh, video.videoHeight / video.videoWidth);
+        };
+
+        let geometry = new THREE.PlaneBufferGeometry(
+          this.TILE_SIZE,
+          this.TILE_SIZE
         );
-      });
-      let geometry = new THREE.PlaneBufferGeometry(TILE_SIZE, TILE_SIZE);
-      let material = new THREE.MeshBasicMaterial({ map: imageTexture });
-      mesh = new THREE.Mesh(geometry, material);
-      mesh.position.set(...tile.pos);
-      TILE_GROUPS.forEach((obj) => obj.group.add(mesh.clone()));
+        let material = new THREE.MeshBasicMaterial({ map: texture });
+        let mesh = new THREE.Mesh(geometry, material);
+        mesh.position.set(...tile.pos);
+        mesh.userData = { slug: tile.slug };
+        this.TILE_GROUPS.forEach((obj) => obj.group.add(mesh.clone()));
+      } else {
+        new THREE.TextureLoader().load(tile.image, (tex) => {
+          let geometry = new THREE.PlaneBufferGeometry(
+            this.TILE_SIZE,
+            this.TILE_SIZE
+          );
+          let material = new THREE.MeshBasicMaterial({ map: tex });
+          let mesh = new THREE.Mesh(geometry, material);
+          adjustUVs(mesh, tex.image.height / tex.image.width);
+          mesh.position.set(...tile.pos);
+          mesh.userData = { slug: tile.slug };
+          this.TILE_GROUPS.forEach((obj) => obj.group.add(mesh.clone()));
+        });
+      }
     });
-    TILE_GROUPS.forEach((obj) => this.scene.add(obj.group));
+
+    this.TILE_GROUPS.forEach((obj) => this.scene.add(obj.group));
   }
 
   setPositions() {
     let scrollX = this.scroll?.current.x;
     let scrollY = this.scroll?.current.y;
-    TILE_GROUPS.forEach(({ offset, pos, group }, i) => {
+    this.TILE_GROUPS.forEach(({ offset, pos, group }, i) => {
       let posX = pos[0] + scrollX + offset.x;
       let posY = pos[1] + scrollY + offset.y;
       let dir = this.direction;
-      let groupOff = GRID_SIZE / 2;
+      let groupOff = this.GRID_SIZE / 2;
 
       let viewportOff = {
         x: this.viewport.width / 2,
@@ -284,15 +330,15 @@ class WorkCategory {
       // offset is added to the grid position on next call
       // horizontal
       if (dir.x < 0 && posX - groupOff > viewportOff.x) {
-        TILE_GROUPS[i].offset.x -= TOTAL_GRID_SIZE;
+        this.TILE_GROUPS[i].offset.x -= this.TOTAL_GRID_SIZE;
       } else if (dir.x > 0 && posX + groupOff < -viewportOff.x) {
-        TILE_GROUPS[i].offset.x += TOTAL_GRID_SIZE;
+        this.TILE_GROUPS[i].offset.x += this.TOTAL_GRID_SIZE;
       }
       // vertical
       if (dir.y < 0 && posY - groupOff > viewportOff.y) {
-        TILE_GROUPS[i].offset.y -= TOTAL_GRID_SIZE;
+        this.TILE_GROUPS[i].offset.y -= this.TOTAL_GRID_SIZE;
       } else if (dir.y > 0 && posY + groupOff < -viewportOff.y) {
-        TILE_GROUPS[i].offset.y += TOTAL_GRID_SIZE;
+        this.TILE_GROUPS[i].offset.y += this.TOTAL_GRID_SIZE;
       }
     });
   }
@@ -317,7 +363,7 @@ class WorkCategory {
     }
 
     // update screen res uniform
-    distortionShader.uniforms.uScreenRes.value = new THREE.Vector2(
+    this.distortionShader.uniforms.uScreenRes.value = new THREE.Vector2(
       this.screen.width,
       this.screen.height
     );
@@ -370,30 +416,53 @@ class WorkCategory {
   }
 
   onClick(e) {
-    // update the picking ray with the camera and mouse position
+    e.preventDefault();
+
+    // Update the mouse position
+    this.mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+    this.mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+
+    // Update the picking ray with the camera and mouse position
     this.raycaster.setFromCamera(this.mouse, this.camera);
 
-    // calculate objects intersecting the picking ray
+    // Calculate objects intersecting the picking ray
     const intersects = this.raycaster.intersectObjects(
       this.scene.children,
       true
     );
 
     for (let i = 0; i < intersects.length; i++) {
-      // intersects[i].object is the object that intersected
-      // 'click' action can be performed here
-      let intersectedObject = intersects[i].object;
-
-      // Find the tile that corresponds to the intersected object
-      let tile = TILES.find((tile) => {
-        let tilePosition = new THREE.Vector3(...tile.pos);
-        return tilePosition.equals(intersectedObject.position);
-      });
-
-      // If a tile was found, open the image URL of the tile in a new tab
-      if (tile) {
-        window.open(tile.url, "_blank");
+      // Check if the intersected object is a mesh
+      if (intersects[i].object instanceof THREE.Mesh) {
+        // Navigate to the URL specified in the slug property of the userData of the mesh
+        //window.location.href = intersects[i].object.userData.slug;
+        window.open(intersects[i].object.userData.slug, "_self");
+        break;
       }
+    }
+  }
+
+  onMouseMove(e) {
+    // Update the mouse position
+    this.mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+    this.mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+
+    // Update the picking ray with the camera and mouse position
+    this.raycaster.setFromCamera(this.mouse, this.camera);
+
+    // Calculate objects intersecting the picking ray
+    const intersects = this.raycaster.intersectObjects(
+      this.scene.children,
+      true
+    );
+
+    // Check if the mouse is over a mesh
+    if (intersects.length > 0 && intersects[0].object instanceof THREE.Mesh) {
+      // Change the cursor style to pointer
+      document.body.style.cursor = "pointer";
+    } else {
+      // Change the cursor style to default
+      document.body.style.cursor = "default";
     }
   }
 
@@ -404,14 +473,14 @@ class WorkCategory {
     window.addEventListener("mousewheel", this.onWheel.bind(this));
 
     window.addEventListener("mousedown", this.onTouchDown.bind(this));
-    window.addEventListener("mousemove", this.onTouchMove.bind(this));
+    window.addEventListener("mousemove", this.onMouseMove.bind(this));
     window.addEventListener("mouseup", this.onTouchUp.bind(this));
 
     window.addEventListener("touchstart", this.onTouchDown.bind(this));
     window.addEventListener("touchmove", this.onTouchMove.bind(this));
     window.addEventListener("touchend", this.onTouchUp.bind(this));
 
-    //window.addEventListener("click", this.onClick.bind(this));
+    window.addEventListener("click", this.onClick.bind(this));
   }
 
   setupReducedMotionListeners() {
@@ -419,12 +488,12 @@ class WorkCategory {
       "#reduced-motion-toggle input"
     );
 
-    if (reducedMotionMediaQuery.matches) {
+    if (this.reducedMotionMediaQuery.matches) {
       reducedMotionCheckbox.checked = true;
     }
 
     reducedMotionCheckbox.addEventListener("change", (e) => {
-      distortionShader.uniforms.uReducedMotion.value = e.target.checked
+      this.distortionShader.uniforms.uReducedMotion.value = e.target.checked
         ? 1.0
         : 0.0;
     });
@@ -434,23 +503,24 @@ class WorkCategory {
     let centeredTileGroupIndex = null;
     let minDistanceToCenter = Infinity;
 
-    TILE_GROUPS.forEach((group, index) => {
+    this.TILE_GROUPS.forEach((group, index) => {
       let posY = group.group.position.y;
 
       // Normalize position Y within the total grid range to positive values for easier comparison
       let normalizedPosY =
-        ((posY % TOTAL_GRID_SIZE) + TOTAL_GRID_SIZE) % TOTAL_GRID_SIZE;
+        ((posY % this.TOTAL_GRID_SIZE) + this.TOTAL_GRID_SIZE) %
+        this.TOTAL_GRID_SIZE;
 
-      let percentage = (normalizedPosY % GRID_SIZE) / GRID_SIZE;
+      let percentage = (normalizedPosY % this.GRID_SIZE) / this.GRID_SIZE;
 
       if (index === 3) {
-        let activeIndex = Math.floor(percentage * images.length);
-        let name = sortedTitles[activeIndex].name;
+        let activeIndex = Math.floor(percentage * this.images.length);
+        let name = this.sortedTitles[activeIndex].name;
         let item = this.worksName.find((item) => item.dataset.name === name);
         //console.log(item);
-        if (oldIndex !== activeIndex) {
+        if (this.oldIndex !== activeIndex) {
           this.debouncedShowActiveItem(item);
-          oldIndex = activeIndex;
+          this.oldIndex = activeIndex;
         }
         //console.log(name);
         //document.querySelector(".name").textContent = name;
@@ -460,7 +530,7 @@ class WorkCategory {
       // Calculate distance from the nearest center position
       let distanceToCenter = Math.min(
         Math.abs(normalizedPosY - 0),
-        Math.abs(normalizedPosY - GRID_SIZE) % GRID_SIZE
+        Math.abs(normalizedPosY - this.GRID_SIZE) % this.GRID_SIZE
       );
 
       if (index === 4) {
@@ -493,9 +563,10 @@ class WorkCategory {
       };
       //console.log(this.scroll.current.y % TOTAL_GRID_SIZE);
       let activeIndex =
-        Math.round((this.scroll.current.y % TOTAL_GRID_SIZE) / images.length) %
-        images.length;
-      //console.log(sortedTitles[activeIndex].name);
+        Math.round(
+          (this.scroll.current.y % this.TOTAL_GRID_SIZE) / this.images.length
+        ) % this.images.length;
+      //console.log(this.sortedTitles[activeIndex].name);
 
       // vertical dir
       if (this.scroll.current.y > this.scroll.last.y) {
@@ -510,7 +581,7 @@ class WorkCategory {
         this.direction.x = 1;
       }
 
-      distortionShader.uniforms.uStrength.value = new THREE.Vector2(
+      this.distortionShader.uniforms.uStrength.value = new THREE.Vector2(
         Math.abs(
           ((this.scroll.current.x - this.scroll.last.x) / this.screen.width) *
             10
@@ -540,4 +611,50 @@ function lerp(start, end, amount) {
   return start * (1 - amount) + end * amount;
 }
 
+function adjustUVs(mesh, textureAspectRatio) {
+  let geometry = mesh.geometry;
+  geometry.computeBoundingBox();
+  let uvAttribute = geometry.attributes.uv;
+
+  for (let j = 0; j < uvAttribute.count; j++) {
+    let u = uvAttribute.getX(j);
+    let v = uvAttribute.getY(j);
+
+    if (textureAspectRatio > 1) {
+      // Texture is wider than it is tall
+      let offset = (1 - 1 / textureAspectRatio) / 2;
+      v = v / textureAspectRatio + offset;
+    } else {
+      // Texture is taller than it is wide
+      let offset = (1 - textureAspectRatio) / 2;
+      u = u * textureAspectRatio + offset;
+    }
+
+    uvAttribute.setXY(j, u, v);
+  }
+  uvAttribute.needsUpdate = true;
+}
+
 export default WorkCategory;
+
+/*
+ addObjects() {
+    this.TILES.forEach((tile, i) => {
+      let imageTexture = new THREE.TextureLoader().load(tile.image, (tex) => {
+        tex.needsUpdate = true;
+
+        // Create the geometry, material, and mesh after the texture has loaded
+        let geometry = new THREE.PlaneBufferGeometry(
+          this.TILE_SIZE * (tex.image.naturalWidth / tex.image.naturalHeight),
+          this.TILE_SIZE // Set the height to a constant value
+        );
+        let material = new THREE.MeshBasicMaterial({ map: imageTexture });
+        let mesh = new THREE.Mesh(geometry, material);
+        mesh.position.set(...tile.pos);
+        mesh.userData = { slug: tile.slug };
+        this.TILE_GROUPS.forEach((obj) => obj.group.add(mesh.clone()));
+      });
+    });
+    this.TILE_GROUPS.forEach((obj) => this.scene.add(obj.group));
+  }
+ */

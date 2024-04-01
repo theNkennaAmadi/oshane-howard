@@ -105,8 +105,9 @@ export class Nav {
         ease: "expo.inOut",
       }
     );
-    this.navOpenTl.to(
+    this.navOpenTl.fromTo(
       this.navOpenText,
+      { y: "0%", ease: "expo.in" },
       { y: "-120%", duration: 0.5, ease: "expo.out" },
       "<"
     );
