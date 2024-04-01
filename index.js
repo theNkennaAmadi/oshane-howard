@@ -9,6 +9,7 @@ gsap.registerPlugin(ScrollTrigger, Flip, Draggable, InertiaPlugin);
 class Home {
   currIndex = 0;
   firstrun = true;
+  showIndicator = true;
   tlShowActive = gsap.timeline();
   constructor(container) {
     this.container = container;
@@ -115,6 +116,11 @@ class Home {
             gsap.to(".hero-visual-item", { pointerEvents: "auto" });
             gsap.to(".home-works-name-wrapper", { opacity: 1 });
             this.activateDraggable();
+            if (this.showIndicator) {
+              gsap.to(".lottie-drag-wrapper", { display: "flex" });
+              gsap.to(".lottie-drag-wrapper", { display: "none", delay: 4 });
+              this.showIndicator = false;
+            }
           },
           pin: true,
           scrub: 1,

@@ -262,12 +262,22 @@ class WorkCategory {
       if (isVideo) {
         let video = document.createElement("video");
         video.crossOrigin = "anonymous"; // Add this line
-        video.src = tile.video;
-        video.loop = true;
-        video.muted = true;
-        video.autoplay = true;
-        video.setAttribute("playsinline", "");
-        video.play().catch((e) => console.error("Video play failed", e));
+        const getSrc = async () => {
+          await fetch(tile.video, {
+            method: "HEAD",
+          }).then((response) => {
+            console.log(response.url);
+            video.src = response.url;
+          });
+        };
+        getSrc().then(() => {
+          video.loop = true;
+          video.muted = true;
+          video.autoplay = true;
+          video.setAttribute("playsinline", "");
+          video.play().catch((e) => console.error("Video play failed", e));
+        });
+        //video.src = tile.video;
 
         let texture = new THREE.VideoTexture(video);
         texture.minFilter = THREE.LinearFilter;

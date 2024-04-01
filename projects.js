@@ -111,7 +111,7 @@ class Projects {
           end: () => `+=${this.scrollContainerWidth * -1}`,
           scrub: 1,
           pin: true,
-          markers: true,
+          //markers: true,
           invalidateOnRefresh: true,
         },
       });
@@ -145,7 +145,7 @@ class Projects {
           end: () => `+=${this.scrollContainerWidth * -1.15}`,
           scrub: 1,
           pin: true,
-          markers: true,
+          //markers: true,
           invalidateOnRefresh: true,
         },
       });
