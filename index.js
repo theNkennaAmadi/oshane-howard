@@ -77,7 +77,9 @@ class Home {
 
       //Flip the hero visual items from fullscreen to grid
       let state = Flip.getState(".hero-visual-list, .hero-visual-item");
-      document.querySelector(".hero-visual-list").classList.toggle("flip");
+      this.container
+        .querySelector(".hero-visual-list")
+        .classList.toggle("flip");
       Flip.from(state, {
         duration: 2,
         ease: "expo.inOut",
@@ -125,6 +127,7 @@ class Home {
           pin: true,
           scrub: 1,
           markers: false,
+          invalidateOnRefresh: true,
         },
       });
 

@@ -293,13 +293,14 @@ class Info {
       gsap.from(list.querySelectorAll(".press-line"), {
         scrollTrigger: {
           trigger: list,
-          start: "top 80%",
-          end: "top 60%",
+          start: "top 90%",
+          end: "top 80%",
           toggleActions: "play none none none",
+          //markers: true,
         },
         width: "0%",
         stagger: {
-          amount: list.querySelectorAll(".press-line").length * 0.25,
+          amount: list.querySelectorAll(".press-line").length * 0.2,
         },
         ease: "expo.out",
       });

@@ -25,11 +25,19 @@ class WorkCategory {
   colorThief = new ColorThief();
   tlChangeBG = gsap.timeline();
   constructor(container) {
+    this.container = container;
     this.worksName = [...container.querySelectorAll(".works-name-item")];
     this.invisible = [...container.querySelectorAll(".w-condition-invisible")];
     this.remove();
     this.workNum = container.querySelector(".work-num");
     this.workTotal = container.querySelector(".work-total");
+    this.workItems = [...container.querySelectorAll(".work-cc-item")];
+    this.images = this.workItems.map((item) => ({
+      name: item.dataset.name,
+      slug: `${window.location.origin}/work/${item.dataset.slug}`,
+      image: item.querySelector("img").src,
+      video: item.querySelector("video")?.src,
+    }));
     this.debouncedShowActiveItem = debounce(
       this.showActiveItem.bind(this),
       200
@@ -58,14 +66,7 @@ class WorkCategory {
   }
 
   initParameters() {
-    this.workItems = [...document.querySelectorAll(".work-cc-item")];
-    this.images = this.workItems.map((item) => ({
-      name: item.dataset.name,
-      slug: `${window.location.origin}/work/${item.dataset.slug}`,
-      image: item.querySelector("img").src,
-      video: item.querySelector("video")?.src,
-    }));
-    console.log(this.images);
+    this.mediaTextures = [];
 
     this.factor = this.images.length % 2 === 0 ? 0.5 : 0;
 
@@ -148,10 +149,10 @@ class WorkCategory {
 
   splitText() {
     this.workTotal.textContent = String(this.worksName.length).padStart(2, "0");
-    const target = [...document.querySelectorAll("[split-target]")];
+    const target = [...this.container.querySelectorAll("[split-target]")];
     const results = Splitting({ target: target, by: "lines" });
     //console.log(results);
-    this.words = document.querySelectorAll(".word");
+    this.words = this.container.querySelectorAll(".word");
     gsap.set(this.words, { yPercent: 120, opacity: 0 });
     this.words.forEach((word) => {
       let wrapper = document.createElement("span");
@@ -169,7 +170,22 @@ class WorkCategory {
     this.currIndex = this.worksName.findIndex((item) => {
       return item.dataset.name === target.dataset.name;
     });
-    console.log(this.currIndex, this.prevIndex);
+    this.activeName = target.dataset.name;
+
+    if (this.mediaTextures[this.currIndex].isVideoTexture) {
+      let activeVideos = this.mediaTextures.find((item) => {
+        return item.name === this.activeName;
+      });
+      let inactiveVideos = this.mediaTextures.map((item) => {
+        if (item.name !== this.activeName) {
+          return item;
+        }
+      });
+      activeVideos.source?.data?.play();
+      inactiveVideos?.forEach((item) => {
+        item?.source?.data?.pause();
+      });
+    }
 
     this.workNum.textContent = String(this.currIndex + 1).padStart(2, "0");
 
@@ -221,7 +237,7 @@ class WorkCategory {
       antialias: true,
       alpha: true,
     });
-    document.body.appendChild(this.renderer.domElement);
+    this.container.appendChild(this.renderer.domElement);
     this.renderer.setClearColor(0x000000);
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.setPixelRatio(Math.min(2, window.devicePixelRatio));
@@ -266,27 +282,37 @@ class WorkCategory {
           await fetch(tile.video, {
             method: "HEAD",
           }).then((response) => {
-            console.log(response.url);
+            // console.log(response.url);
             video.src = response.url;
           });
         };
         getSrc().then(() => {
           video.loop = true;
           video.muted = true;
-          video.autoplay = true;
+          //video.autoplay = true;
+          video.playsInline = true;
+          video.poster = `${tile.image}`;
           video.setAttribute("playsinline", "");
-          video.play().catch((e) => console.error("Video play failed", e));
+          //video.play().catch((e) => console.error("Video play failed", e));
         });
         //video.src = tile.video;
 
         let texture = new THREE.VideoTexture(video);
+        texture.needsUpdate = true;
         texture.minFilter = THREE.LinearFilter;
         texture.magFilter = THREE.LinearFilter;
         texture.format = THREE.RGBAFormat;
 
+        texture.name = tile.name;
+
+        this.mediaTextures = [...this.mediaTextures, texture];
+        console.log(this.mediaTextures);
+
         // Wait for the video to load to adjust UV mapping
         video.onloadedmetadata = () => {
           adjustUVs(mesh, video.videoHeight / video.videoWidth);
+          texture.needsUpdate = true;
+          //video.play().catch((e) => console.error("Video play failed", e));
         };
 
         let geometry = new THREE.PlaneBufferGeometry(
@@ -304,6 +330,7 @@ class WorkCategory {
             this.TILE_SIZE,
             this.TILE_SIZE
           );
+          this.mediaTextures = [...this.mediaTextures, tex];
           let material = new THREE.MeshBasicMaterial({ map: tex });
           let mesh = new THREE.Mesh(geometry, material);
           adjustUVs(mesh, tex.image.height / tex.image.width);
@@ -578,6 +605,27 @@ class WorkCategory {
         ) % this.images.length;
       //console.log(this.sortedTitles[activeIndex].name);
 
+      // Pause all videos
+      /*
+      this.mediaTextures.forEach((texture) => {
+        if (texture.image instanceof HTMLVideoElement) {
+          texture.image.pause();
+        }
+      });
+
+      // Play the video that is currently in view
+      if (
+        this.mediaTextures[this.currIndex].image instanceof HTMLVideoElement
+      ) {
+        //this.mediaTextures[this.currIndex].image.play();
+        //v.source?.data?.play();
+        //v.image.play();
+      }
+
+       */
+
+      //console.log(this.mediaTextures[this.currIndex]);
+
       // vertical dir
       if (this.scroll.current.y > this.scroll.last.y) {
         this.direction.y = -1;
@@ -668,3 +716,8 @@ export default WorkCategory;
     this.TILE_GROUPS.forEach((obj) => this.scene.add(obj.group));
   }
  */
+
+//console.log(this.mediaTextures[this.currIndex].source);
+//this.mediaTextures[this.currIndex - 1].source.data.load();
+//this.mediaTextures[this.currIndex - 1].source.data.play();
+//this.mediaTextures[this.prevIndex - 1]?.source?.data?.pause();

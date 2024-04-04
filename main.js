@@ -2,6 +2,10 @@ import barba from "@barba/core";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Observer } from "gsap/Observer";
+import { Flip } from "gsap/Flip";
+import Splitting from "splitting";
+import { Draggable } from "gsap/Draggable";
+import InertiaPlugin from "gsap/InertiaPlugin";
 import Lenis from "@studio-freight/lenis";
 
 import Projects from "./projects.js";
@@ -12,7 +16,7 @@ import Home from "./index.js";
 import LoaderAnimation from "./loader.js";
 import Test from "./test.js";
 
-gsap.registerPlugin(ScrollTrigger, Observer);
+gsap.registerPlugin(ScrollTrigger, Observer, Flip, Draggable, InertiaPlugin);
 
 let m = null;
 let navInstance = new Nav(document.querySelector(".page-wrapper"));
@@ -36,13 +40,28 @@ gsap.ticker.lagSmoothing(0);
  */
 
 barba.hooks.beforeLeave((data) => {
+  /*
+  if (data.current.container.dataset.barbaNamespace === "home") {
+    document.querySelectorAll(".hero-visual-item").forEach((item) => {
+      item.removeAttribute("data-flip-id");
+      console.log(item);
+    });
+  }
+
+   */
+  Flip.killFlipsOf(data.current.container);
   gsap.getTweensOf("*").forEach((animation) => {
-    //animation.kill();
+    animation.revert();
+    animation.kill();
   });
   ScrollTrigger.clearScrollMemory();
   //ScrollTrigger.removeEventListener("scrollEnd", gallerySnap);
-  Observer.getAll().forEach((o) => o.kill());
+  //Observer.getAll().forEach((o) => o.kill());
+  //ScrollTrigger.killAll();
   ScrollTrigger.getAll().forEach((t) => t.kill());
+  ScrollTrigger.refresh();
+  window.dispatchEvent(new Event("resize"));
+  Draggable.get(".hero-visual-list-wrapper").kill();
 
   window.scroll(0, 0);
   if (history.scrollRestoration) {
@@ -95,14 +114,16 @@ barba.init({
         let nextContainer = data.next.container;
         backgroundColorReset(nextContainer);
         navInstance = new Nav(nextContainer);
-        new Info(nextContainer);
+        setTimeout(() => {
+          new Info(nextContainer);
+        }, 1000);
       },
     },
     {
       namespace: "work-category",
       beforeEnter(data) {
         let nextContainer = data.next.container;
-        // backgroundColorReset(nextContainer);
+        backgroundColorReset(nextContainer);
         navInstance = new Nav(nextContainer);
         new WorkCategory(nextContainer);
       },
