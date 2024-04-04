@@ -1,5 +1,6 @@
 import gsap from "gsap";
 
+
 export class Nav {
   navClosed = true;
   navOpenTl = gsap.timeline({ paused: true });

@@ -3,7 +3,6 @@ import Splitting from "splitting";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Flip } from "gsap/Flip";
-import * as Lottie from "lottie-web";
 
 gsap.registerPlugin(ScrollTrigger, Flip);
 const lottie = Webflow.require("lottie").lottie;
@@ -32,7 +31,6 @@ class Projects {
   getScrollAmount() {
     this.scrollContainerWidth =
       this.scrollContainer.scrollWidth - window.innerWidth;
-    console.log(window.innerWidth);
     return -(this.scrollContainerWidth - window.innerWidth);
   }
 
@@ -53,7 +51,6 @@ class Projects {
       this.scrollContainerWidth = -(
         this.scrollContainer.scrollWidth - window.innerWidth
       );
-      //console.log(this.scrollContainerWidth);
       this.initHorizontalScroll();
       return -(this.scrollContainerWidth - window.innerWidth);
     });

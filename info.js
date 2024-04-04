@@ -13,7 +13,6 @@ class Marquee {
   }
 
   init() {
-    console.log("initeee");
     // Configure the initial direction of the animation.
     const config = {
       repeat: -1,
@@ -174,6 +173,8 @@ class Info {
     this.pressLists = [...container.querySelectorAll(".press-list")];
     this.marqueeContent = [...container.querySelectorAll("[marquee-content]")];
     this.introBlock = container.querySelector(".info-intro");
+    this.contactBlocks = [...container.querySelectorAll(".contact-block")];
+    this.infoAbout = container.querySelector(".info-about");
     this.init();
   }
 
@@ -182,6 +183,7 @@ class Info {
     this.initMarquee();
     this.addEventListeners();
     this.addPressScrollTrigger();
+    gsap.set(this.introBlock, {opacity:1})
   }
 
   initLoad() {
@@ -223,6 +225,8 @@ class Info {
       },
       "<"
     );
+    tl.from(this.contactBlocks, {y: "35%", opacity: 0, ease: "expo.out", stagger: {amount: 0.6}}, "<")
+    tl.from(this.infoAbout, {opacity: 0, ease: "expo.out"}, "<")
     const newRun = () => {
       gsap.to(this.container.querySelector(".info-img").querySelector("img"), {
         y: "40%",
@@ -300,7 +304,7 @@ class Info {
         },
         width: "0%",
         stagger: {
-          amount: list.querySelectorAll(".press-line").length * 0.2,
+          amount: list.querySelectorAll(".press-line").length * 0.15,
         },
         ease: "expo.out",
       });

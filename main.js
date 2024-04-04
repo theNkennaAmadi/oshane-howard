@@ -1,12 +1,11 @@
 import barba from "@barba/core";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { Observer } from "gsap/Observer";
-import { Flip } from "gsap/Flip";
-import Splitting from "splitting";
-import { Draggable } from "gsap/Draggable";
-import InertiaPlugin from "gsap/InertiaPlugin";
 import Lenis from "@studio-freight/lenis";
+
+gsap.config({
+  nullTargetWarn: false,
+});
 
 import Projects from "./projects.js";
 import Info from "./info.js";
@@ -14,9 +13,8 @@ import { Nav, backgroundColorReset } from "./global.js";
 import WorkCategory from "./workCategory.js";
 import Home from "./index.js";
 import LoaderAnimation from "./loader.js";
-import Test from "./test.js";
 
-gsap.registerPlugin(ScrollTrigger, Observer, Flip, Draggable, InertiaPlugin);
+gsap.registerPlugin(ScrollTrigger);
 
 let m = null;
 let navInstance = new Nav(document.querySelector(".page-wrapper"));
@@ -114,9 +112,7 @@ barba.init({
         let nextContainer = data.next.container;
         backgroundColorReset(nextContainer);
         navInstance = new Nav(nextContainer);
-        setTimeout(() => {
-          new Info(nextContainer);
-        }, 1000);
+        new Info(nextContainer);
       },
     },
     {
@@ -145,7 +141,6 @@ barba.init({
       namespace: "test",
       beforeEnter(data) {
         let nextContainer = data.next.container;
-        new Test(nextContainer);
       },
     },
   ],

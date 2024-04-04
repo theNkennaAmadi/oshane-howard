@@ -110,7 +110,7 @@ class WorkCategory {
       if (bValue < 0) return 1;
     });
 
-    console.log(this.sortedTitles);
+    //console.log(this.sortedTitles);
 
     // clone groups
     this.TILE_GROUPS = this.TILES.map((tile) => {
@@ -206,6 +206,7 @@ class WorkCategory {
   }
 
   init() {
+    gsap.to('body', {overflow: 'hidden'});
     this.direction = {
       x: 1,
       y: 1,
@@ -289,7 +290,7 @@ class WorkCategory {
         getSrc().then(() => {
           video.loop = true;
           video.muted = true;
-          //video.autoplay = true;
+          video.autoplay = true;
           video.playsInline = true;
           video.poster = `${tile.image}`;
           video.setAttribute("playsinline", "");
@@ -306,7 +307,7 @@ class WorkCategory {
         texture.name = tile.name;
 
         this.mediaTextures = [...this.mediaTextures, texture];
-        console.log(this.mediaTextures);
+        //console.log(this.mediaTextures);
 
         // Wait for the video to load to adjust UV mapping
         video.onloadedmetadata = () => {
@@ -528,7 +529,6 @@ class WorkCategory {
     if (this.reducedMotionMediaQuery.matches) {
       reducedMotionCheckbox.checked = true;
     }
-
     reducedMotionCheckbox.addEventListener("change", (e) => {
       this.distortionShader.uniforms.uReducedMotion.value = e.target.checked
         ? 1.0
@@ -588,9 +588,6 @@ class WorkCategory {
 
   render() {
     this.composer.render();
-    // this.renderer.render(this.scene, this.camera);
-    //console.log(TILE_GROUPS[4].group.position.y);
-    //console.log(TILE_GROUPS[4].name);
     this.findCenteredTileGroup();
 
     requestAnimationFrame(() => {
@@ -603,28 +600,7 @@ class WorkCategory {
         Math.round(
           (this.scroll.current.y % this.TOTAL_GRID_SIZE) / this.images.length
         ) % this.images.length;
-      //console.log(this.sortedTitles[activeIndex].name);
 
-      // Pause all videos
-      /*
-      this.mediaTextures.forEach((texture) => {
-        if (texture.image instanceof HTMLVideoElement) {
-          texture.image.pause();
-        }
-      });
-
-      // Play the video that is currently in view
-      if (
-        this.mediaTextures[this.currIndex].image instanceof HTMLVideoElement
-      ) {
-        //this.mediaTextures[this.currIndex].image.play();
-        //v.source?.data?.play();
-        //v.image.play();
-      }
-
-       */
-
-      //console.log(this.mediaTextures[this.currIndex]);
 
       // vertical dir
       if (this.scroll.current.y > this.scroll.last.y) {
@@ -656,9 +632,6 @@ class WorkCategory {
         x: this.scroll.current.x,
         y: this.scroll.current.y,
       };
-
-      //console.log(this.scroll.current);
-      //console.log(this.scroll.current.y);
 
       this.render();
     });
