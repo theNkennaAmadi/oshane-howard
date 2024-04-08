@@ -136,13 +136,7 @@ barba.init({
     {
       namespace: "404",
       beforeEnter() {},
-    },
-    {
-      namespace: "test",
-      beforeEnter(data) {
-        let nextContainer = data.next.container;
-      },
-    },
+    }
   ],
   transitions: [
     {
