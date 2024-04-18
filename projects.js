@@ -11,7 +11,7 @@ class Projects {
   fadeOutTimeout = null;
   constructor(container) {
     this.container = container;
-    this.scrollContainer = document.querySelector(".work-wrapper");
+    this.scrollContainer = window.innerWidth > 479 ? container.querySelector(".work-wrapper") : container.querySelector(".work-visuals-wrapper");
     this.invisible = [...container.querySelectorAll(".w-condition-invisible")];
     this.nextImage = container.querySelector(".next-up-image");
     this.videoControls = container.querySelector(".video-controls");
@@ -21,7 +21,9 @@ class Projects {
     this.info = container.querySelector(".v-info");
     this.videoDuration = container.querySelector(".v-duration-inner");
     this.remove();
-    this.init();
+    setTimeout(() => {
+        this.init();
+    }, 100)
   }
 
   remove() {
@@ -52,14 +54,14 @@ class Projects {
         this.scrollContainer.scrollWidth - window.innerWidth
       );
       this.initHorizontalScroll();
-      return -(this.scrollContainerWidth - window.innerWidth);
+      return -(this.scrollContainer.scrollWidth- window.innerWidth);
     });
 
     window.addEventListener("resize", () => {
       this.scrollContainerWidth = -(
         this.scrollContainer.scrollWidth - window.innerWidth
       );
-    });
+    })
   }
 
   init() {
@@ -134,15 +136,16 @@ class Projects {
         ".work-visuals-wrapper"
       );
       let horScroll = gsap.to(this.scrollContainer, {
-        x: () => this.scrollContainerWidth * 1.15,
+        x: () => this.scrollContainerWidth - (window.innerWidth * 1.7),
         ease: "none",
         scrollTrigger: {
           trigger: this.scrollContainer,
           start: "top top",
-          end: () => `+=${this.scrollContainerWidth * -1.15}`,
+          end: () => `+=${this.scrollContainerWidth * -1 }`,
           scrub: 1,
+          anticipatePin: 1,
           pin: true,
-          //markers: true,
+          markers: true,
           invalidateOnRefresh: true,
         },
       });

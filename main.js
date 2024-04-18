@@ -1,7 +1,6 @@
 import barba from "@barba/core";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import Lenis from "@studio-freight/lenis";
 
 gsap.config({
   nullTargetWarn: false,
@@ -16,7 +15,6 @@ import LoaderAnimation from "./loader.js";
 
 gsap.registerPlugin(ScrollTrigger);
 
-let m = null;
 let navInstance = new Nav(document.querySelector(".page-wrapper"));
 
 /**
@@ -47,19 +45,25 @@ barba.hooks.beforeLeave((data) => {
   }
 
    */
+
   Flip.killFlipsOf(data.current.container);
   gsap.getTweensOf("*").forEach((animation) => {
     animation.revert();
     animation.kill();
   });
   ScrollTrigger.clearScrollMemory();
+
+
   //ScrollTrigger.removeEventListener("scrollEnd", gallerySnap);
   //Observer.getAll().forEach((o) => o.kill());
   //ScrollTrigger.killAll();
+
   ScrollTrigger.getAll().forEach((t) => t.kill());
   ScrollTrigger.refresh();
   window.dispatchEvent(new Event("resize"));
   Draggable.get(".hero-visual-list-wrapper").kill();
+
+
 
   window.scroll(0, 0);
   if (history.scrollRestoration) {
@@ -75,13 +79,15 @@ barba.init({
   views: [
     {
       namespace: "home",
-      beforeEnter(data) {
+      afterEnter(data) {
+        ScrollTrigger.clearScrollMemory();
         let nextContainer = data.next.container;
         backgroundColorReset(nextContainer);
         navInstance = new Nav(nextContainer);
         //new Home(nextContainer);
         if (firstLoad) {
           new LoaderAnimation(nextContainer);
+          firstLoad = false;
         } else {
           gsap.set(".preloader-wrapper, .preloader-line", {
             display: "none",
@@ -94,13 +100,13 @@ barba.init({
           mTL.to(".hero-visual-list", {
             width: "100%",
             height: "100%",
-            duration: 1,
+            duration: 0.75,
             ease: "expo.out",
           });
           mTL.set(".hero-visual-item", { opacity: 1 });
           mTL.from(".hero-text, .nav-wrapper", {
             opacity: 0,
-            duration: 1,
+            duration: 0.75,
             ease: "power3.inOut",
           });
         }
@@ -108,7 +114,8 @@ barba.init({
     },
     {
       namespace: "info",
-      beforeEnter(data) {
+      afterEnter(data) {
+        ScrollTrigger.clearScrollMemory();
         let nextContainer = data.next.container;
         backgroundColorReset(nextContainer);
         navInstance = new Nav(nextContainer);
@@ -117,7 +124,8 @@ barba.init({
     },
     {
       namespace: "work-category",
-      beforeEnter(data) {
+      afterEnter(data) {
+        ScrollTrigger.clearScrollMemory();
         let nextContainer = data.next.container;
         backgroundColorReset(nextContainer);
         navInstance = new Nav(nextContainer);
@@ -126,11 +134,14 @@ barba.init({
     },
     {
       namespace: "work",
-      beforeEnter(data) {
+      afterEnter(data) {
+        ScrollTrigger.clearScrollMemory();
         let nextContainer = data.next.container;
         backgroundColorReset(nextContainer);
         navInstance = new Nav(nextContainer);
         new Projects(nextContainer);
+        window.Webflow && window.Webflow.ready();
+        window.Webflow && window.Webflow.require("ix2").init();
       },
     },
     {
@@ -144,7 +155,8 @@ barba.init({
       enter(data) {
         let nextContainer = data.next.container;
         let currentContainer = data.current.container;
-        console.log(nextContainer);
+        nextContainer.classList.add('fixed')
+        window.scroll(0, 0);
         backgroundColorReset(nextContainer);
         //reverse the openTL timeline of the Nav class
         //console.log(navInstance.container);
@@ -156,6 +168,8 @@ barba.init({
         });
 
          */
+
+        /*
         gsap.fromTo(
           nextContainer,
           { yPercent: 100 },
@@ -171,6 +185,11 @@ barba.init({
             duration: 1,
           }
         );
+        */
+      },
+      afterEnter(data) {
+        let nextContainer = data.next.container;
+        nextContainer.classList.remove('fixed')
       },
     },
   ],

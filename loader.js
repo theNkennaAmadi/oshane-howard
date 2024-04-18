@@ -14,8 +14,8 @@ class LoaderAnimation {
   };
   constructor(container) {
     this.container = container;
-    this.DOMlayers = container.querySelector(".hero-visual-list-wrapper");
-    this.DOMItems = [...this.DOMlayers.querySelectorAll(".hero-link")];
+    this.DOMlayers = container.querySelector(".hero-visual-list-wrapper-intro");
+    this.DOMItems = [...this.DOMlayers.querySelectorAll(".hero-link-intro")];
     this.init();
   }
 
@@ -26,6 +26,7 @@ class LoaderAnimation {
     });
     gsap.set(".preloader-wrapper > *", { opacity: 1 });
     this.odometer();
+    gsap.set(".hero-visual-intro", {display: "grid"});
   }
 
   odometer() {
@@ -101,7 +102,7 @@ class LoaderAnimation {
     const allInnerItems = this.items.map((item) => item.DOM.inner);
 
     const lastInner = this.items[this.items.length - 1].DOM.inner;
-    gsap.set(".hero-visual-item", { opacity: 1 });
+    gsap.set(".hero-visual-item-intro", { opacity: 1 });
 
     // Creating a new GSAP timeline for managing a sequence of animations
     this.tl = gsap
@@ -115,6 +116,9 @@ class LoaderAnimation {
         delay: 3,
         onComplete: () => {
           //gsap.set(this.targets(), { clearProps: "all" });
+          gsap.set(".hero-visual", { opacity: 1, display: "grid"});
+          gsap.set(".hero-visual-item", { opacity: 1 });
+          gsap.set(".hero-visual-intro", {display: "none"});
           new Home(this.container);
         },
       })
@@ -166,13 +170,13 @@ class LoaderAnimation {
           // Starting state for 'inner' elements' animation
           xPercent: 0,
           //filter: "brightness(10%)", // CSS filters to adjust color
-          // force3D: true, // Force 3D rendering for smoother animations
+          force3D: true, // Force 3D rendering for smoother animations
         },
         {
           // Animation target state
           stagger: this.animationSettings.delayFactor * 1.2, // Stagger settings similar to above
           //filter: "brightness(100%)", // Full brightness
-          //force3D: true, // Force 3D rendering for smoother animations
+          force3D: true, // Force 3D rendering for smoother animations
         },
         0
       )

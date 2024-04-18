@@ -187,7 +187,7 @@ class Info {
   }
 
   initLoad() {
-    let tl = gsap.timeline({ delay: 1 });
+    let tl = gsap.timeline({ delay: 0.5 });
     tl.from(
       this.container.querySelectorAll("[info-span]"),
       {
@@ -240,7 +240,7 @@ class Info {
       });
       gsap.to(this.container.querySelectorAll("[info-span]"), {
         x: gsap.utils.wrap(["0.5%", "-0.3%"]),
-        ease: "expo.out",
+        ease: "linear",
         duration: 1.5,
         scrollTrigger: {
           trigger: this.introBlock,

@@ -4,6 +4,7 @@ import { Flip } from "gsap/Flip";
 import Splitting from "splitting";
 import { Draggable } from "gsap/Draggable";
 import InertiaPlugin from "gsap/InertiaPlugin";
+import { DraggableImg} from "./global.js";
 
 gsap.registerPlugin(ScrollTrigger, Flip, Draggable, InertiaPlugin);
 class Home {
@@ -66,6 +67,12 @@ class Home {
   }
 
   initFlip() {
+
+    // Bind the handleMouseMove method to the class instance
+    const boundHandleMouseMove = this.handleMouseMove.bind(this);
+    this.heroVisuals.forEach((visual, index) => {
+      gsap.to(visual, {zIndex: index * 2})
+    })
     setTimeout(() => {
       let firstrun = this.firstrun;
       let updatedText = false;
@@ -75,16 +82,20 @@ class Home {
       tlUpdate.set(".hero-text", { display: "none" });
       tlUpdate.to(".nav-wrapper", { color: "black" });
 
+      document.querySelector(".hero-visual-list").appendChild(document.querySelector(".mb-logo"))
+      document.querySelector(".hero-visual-list").appendChild(document.querySelector(".mb-info"))
+
+
       //Flip the hero visual items from fullscreen to grid
-      let state = Flip.getState(".hero-visual-list, .hero-visual-item");
+      let state = Flip.getState(".hero-visual-list, .hero-visual-item, .hero-visual-list-wrapper");
       this.container
         .querySelector(".hero-visual-list")
-        .classList.toggle("flip");
+        .classList.toggle("flip-grid");
       Flip.from(state, {
         duration: 2,
         ease: "expo.inOut",
-        simple: true,
-        immediateRender: false,
+        //simple: true,
+        immediateRender: true,
         scrollTrigger: {
           trigger: ".hero-grid",
           start: "top 0%",
@@ -101,28 +112,54 @@ class Home {
                 updatedText = !updatedText;
               }
             }
+            gsap.to(".hero-visual-list-wrapper", {scale: ()=>{return window.innerWidth > 479 ? (1+ self.progress*0.5) : (1+self.progress)}, ease: "none"})
           },
           onEnterBack: () => {
-            Draggable.get(".hero-visual-list-wrapper").kill();
+            //Draggable.get(".hero-visual-list-wrapper").kill();
+
+            window.innerWidth > 479 ?
+                document.body.removeEventListener("mousemove", boundHandleMouseMove, true)
+                : null;
+
+            //document.body.removeEventListener("mousemove", boundHandleMouseMove, true)
+            //document.body.removeEventListener("touchmove", boundHandleMouseMove, {passive: false})
+            /*
             gsap.to(".hero-visual-list-wrapper", {
               x: 0,
               y: 0,
               duration: 1,
               ease: "power3.inOut",
             });
-            gsap.to(".hero-visual-item", { pointerEvents: "none" });
+            */
+            window.innerWidth > 479 ? gsap.to(".hero-visual-item", { pointerEvents: "none", opacity: 1 }) : null;
+           // gsap.to(".hero-visual-item", { pointerEvents: "none", opacity: 1 });
             gsap.to(".char", { yPercent: 120, opacity: 0 });
+            gsap.to(".home-works-name-wrapper", { opacity: 0 });
+            //gsap.to('.hero-visual-text', {opacity: 0})
             firstrun = true;
           },
           onLeave: () => {
             gsap.to(".hero-visual-item", { pointerEvents: "auto" });
             gsap.to(".home-works-name-wrapper", { opacity: 1 });
-            this.activateDraggable();
+            //
+            //document.body.addEventListener("mousemove", boundHandleMouseMove, true)
+            //document.body.addEventListener("touchmove", boundHandleMouseMove, {passive: false})
+            //this.activateDraggable();
+
+            window.innerWidth > 479 ?
+                document.body.addEventListener("mousemove", boundHandleMouseMove, true)
+                : new DraggableImg(document.querySelector(".hero-visual-list-wrapper"));
+
+
+            //this.activateDraggable()
+            /*
             if (this.showIndicator) {
               gsap.to(".lottie-drag-wrapper", { display: "flex" });
               gsap.to(".lottie-drag-wrapper", { display: "none", delay: 4 });
               this.showIndicator = false;
             }
+
+             */
           },
           pin: true,
           scrub: 1,
@@ -132,9 +169,12 @@ class Home {
       });
 
       //Scale the hero list wrapper so that it looks like it's zooming in
-      gsap.to(".hero-visual-list-wrapper", {
-        scale: 1.5,
-        ease: "expo.out",
+      /*
+      gsap.fromTo(".hero-visual-list",{scale: 1}, {
+        //scale: 1.5,
+        //transform: "scale(1.5)",
+        force3D: true,
+        ease: "none",
         scrollTrigger: {
           trigger: ".hero-visual",
           start: "top top",
@@ -142,12 +182,15 @@ class Home {
           scrub: 1,
         },
       });
-    }, 1000);
+
+       */
+    }, 50);
   }
 
   addVisualsEventListeners() {
     this.heroVisuals.forEach((visual, index) => {
       let oItems = this.heroVisuals.filter((item) => item !== visual);
+      let timerID
 
       let tl = gsap.timeline({ paused: true });
       tl.fromTo(
@@ -156,7 +199,7 @@ class Home {
         {
           scale: 1.1,
           opacity: 1,
-          duration: 0.8,
+          duration: 0.6,
           force3D: true,
           ease: "expo.inOut",
         }
@@ -167,7 +210,7 @@ class Home {
         {
           scale: 1,
           opacity: 0.4,
-          duration: 0.8,
+          duration: 0.6,
           ease: "expo.inOut",
           force3D: true,
         },
@@ -177,15 +220,20 @@ class Home {
       //visual.style.zIndex = index + 5;
       visual.addEventListener("mouseover", () => {
         if (this.currIndex !== index || this.firstrun) {
-          this.showActiveNames(this.currIndex, index);
-          this.currIndex = index;
+          timerID = setTimeout(() => {
+            this.showActiveNames(this.currIndex, index);
+            this.currIndex = index;
+          }, 600)
         }
         this.firstrun = false;
         this.showHighlight(index);
-        tl.play();
+        tl.timeScale(1);
+        tl.restart()
       });
       visual.addEventListener("mouseout", () => {
-        tl.reverse();
+        clearTimeout(timerID);
+        tl.timeScale(4);
+        tl.reverse()
       });
     });
   }
@@ -195,7 +243,7 @@ class Home {
       yPercent: 120,
       opacity: 0.5,
       stagger: {
-        amount: 0.1,
+        amount: 0.05,
         from: "center",
         grid: "auto",
         ease: "linear",
@@ -207,7 +255,7 @@ class Home {
         yPercent: 120,
         opacity: 0.5,
         stagger: {
-          amount: 0.1,
+          amount: 0.05,
           from: "center",
           grid: "auto",
           ease: "linear",
@@ -219,7 +267,7 @@ class Home {
       yPercent: 0,
       opacity: 1,
       stagger: {
-        amount: 0.1,
+        amount: 0.05,
         from: "center",
         grid: "auto",
         ease: "linear",
@@ -231,7 +279,7 @@ class Home {
         yPercent: 0,
         opacity: 1,
         stagger: {
-          amount: 0.1,
+          amount: 0.05,
           from: "center",
           grid: "auto",
           ease: "linear",
@@ -268,9 +316,45 @@ class Home {
       },
     });
   }
+
+  getMousePositionPercentage(mousePosition, maxPosition) {
+    return (mousePosition / maxPosition) * 100;
+  }
+
+  handleMouseMove = (e)=>{
+    let clientX, clientY;
+
+    // Check if the event is a touch event
+    if (e.touches && e.touches.length > 0) {
+      clientX = e.touches[0].clientX;
+      clientY = e.touches[0].clientY;
+    } else {
+      // Mouse event
+      clientX = e.clientX;
+      clientY = e.clientY;
+    }
+
+    // Get mouse or touch position as a percentage of the window's width and height
+    const mouseXPercentage = this.getMousePositionPercentage(clientX, window.innerWidth);
+    const mouseYPercentage = this.getMousePositionPercentage(clientY, window.innerHeight);
+
+    // Calculate the movement for the div
+    const moveX = gsap.utils.mapRange(0, 100, 30, -30, mouseXPercentage);
+    const moveY = gsap.utils.mapRange(0, 100, 30, -30, mouseYPercentage);
+
+    // Animate the div position using GSAP
+    gsap.to(".hero-visual-list-wrapper", {
+      x: `${moveX}%`,
+      y: `${moveY}%`,
+      ease: "none",
+      duration: 0.5,
+    });
+  };
 }
 
 export default Home;
+
+
 
 /*
 const homeWorks = document.querySelector("#homeWorks");
