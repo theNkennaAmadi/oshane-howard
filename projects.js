@@ -13,7 +13,9 @@ class Projects {
     this.container = container;
     this.scrollContainer = window.innerWidth > 479 ? container.querySelector(".work-wrapper") : container.querySelector(".work-visuals-wrapper");
     this.invisible = [...container.querySelectorAll(".w-condition-invisible")];
-    this.nextImage = container.querySelector(".next-up-image");
+    this.nextItems = [...container.querySelectorAll(".next-up-cc-item")];
+    this.randomNumber = Math.floor(Math.random() * this.nextItems.length);
+    this.nextImage = this.nextItems[this.randomNumber].querySelector(".next-up-image");
     this.videoControls = container.querySelector(".video-controls");
     this.media = container.querySelector(".work-main-img");
     this.video = container.querySelector("video");
@@ -72,6 +74,8 @@ class Projects {
     if (this.scrollContainer.dataset.type === "Motion") {
       this.togglePlay();
     }
+    let inactiveNextItems = this.nextItems.filter((item) => item !== this.nextItems[this.randomNumber]);
+    gsap.set(inactiveNextItems, { display: "none", visibility: "hidden" });
   }
 
   splitText() {
