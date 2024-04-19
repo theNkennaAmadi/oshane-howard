@@ -14,8 +14,9 @@ class Projects {
     this.scrollContainer = window.innerWidth > 479 ? container.querySelector(".work-wrapper") : container.querySelector(".work-visuals-wrapper");
     this.invisible = [...container.querySelectorAll(".w-condition-invisible")];
     this.nextItems = [...container.querySelectorAll(".next-up-cc-item")];
-    this.randomNumber = Math.floor(Math.random() * this.nextItems.length);
-    this.nextImage = this.nextItems[this.randomNumber].querySelector(".next-up-image");
+    this.initNextItems();
+    //this.randomNumber = Math.floor(Math.random() * this.nextItems.length);
+    //this.nextImage = this.nextItems[this.randomNumber].querySelector(".next-up-image");
     this.videoControls = container.querySelector(".video-controls");
     this.media = container.querySelector(".work-main-img");
     this.video = container.querySelector("video");
@@ -26,6 +27,20 @@ class Projects {
     setTimeout(() => {
         this.init();
     }, 100)
+  }
+
+  initNextItems(){
+    let currItem = this.nextItems.filter((item) => item.dataset.project_name === this.container.dataset.project_name)
+    let currIndex = this.nextItems.indexOf(currItem[0]);
+    let nextIndex
+    if(currIndex === this.nextItems.length - 1){
+         nextIndex = 0;
+    }else{
+        nextIndex = currIndex + 1;
+    }
+    let inactiveNextItems = this.nextItems.filter((item) => item !== this.nextItems[nextIndex]);
+    gsap.set(inactiveNextItems, { display: "none", visibility: "hidden" });
+    this.nextImage = this.nextItems[nextIndex].querySelector(".next-up-image")
   }
 
   remove() {
@@ -74,8 +89,8 @@ class Projects {
     if (this.scrollContainer.dataset.type === "Motion") {
       this.togglePlay();
     }
-    let inactiveNextItems = this.nextItems.filter((item) => item !== this.nextItems[this.randomNumber]);
-    gsap.set(inactiveNextItems, { display: "none", visibility: "hidden" });
+    //let inactiveNextItems = this.nextItems.filter((item) => item !== this.nextItems[this.randomNumber]);
+    //gsap.set(inactiveNextItems, { display: "none", visibility: "hidden" });
   }
 
   splitText() {
