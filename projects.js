@@ -33,11 +33,7 @@ class Projects {
     let currItem = this.nextItems.filter((item) => item.dataset.project_name === this.container.dataset.project_name)
     let currIndex = this.nextItems.indexOf(currItem[0]);
     let nextIndex
-    if(currIndex === this.nextItems.length - 1){
-         nextIndex = 0;
-    }else{
-        nextIndex = currIndex + 1;
-    }
+    currIndex === this.nextItems.length - 1 ? nextIndex = 0 : nextIndex = currIndex + 1;
     let inactiveNextItems = this.nextItems.filter((item) => item !== this.nextItems[nextIndex]);
     gsap.set(inactiveNextItems, { display: "none", visibility: "hidden" });
     this.nextImage = this.nextItems[nextIndex].querySelector(".next-up-image")
