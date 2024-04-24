@@ -13,6 +13,8 @@ import vertex from "./vertex.glsl";
 import Splitting from "splitting";
 import { debounce } from "./global.js";
 import ColorThief from "colorthief";
+import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
+import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -42,6 +44,7 @@ class WorkCategory {
       this.showActiveItem.bind(this),
       200
     );
+    this.loadFont()
     this.initParameters();
     this.splitText();
     this.init();
@@ -59,6 +62,13 @@ class WorkCategory {
     this.setupReducedMotionListeners();
 
     this.render();
+  }
+
+  loadFont() {
+    const loader = new FontLoader();
+    loader.load('kaneda_gothic_black_regular.json', (font) => {
+      this.font = font;
+    });
   }
 
   remove() {
@@ -274,6 +284,17 @@ class WorkCategory {
 
   addObjects() {
     this.TILES.forEach((tile, i) => {
+      // Now add text under each tile
+      const textGeo = new TextGeometry(tile.name, {
+        font: this.font,
+        size: 0.5, // adjust size based on your needs
+        height: 0.1, // thickness of the text
+        curveSegments: 12
+      });
+
+      const textMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+      const textMesh = new THREE.Mesh(textGeo, textMaterial);
+
       let isVideo = tile.video && tile.video !== "";
 
       if (isVideo) {
@@ -324,6 +345,10 @@ class WorkCategory {
         let mesh = new THREE.Mesh(geometry, material);
         mesh.position.set(...tile.pos);
         mesh.userData = { slug: tile.slug };
+        // Position the text under the tile
+        textMesh.position.x = tile.pos[0]; // align horizontally with tile
+        textMesh.position.y = tile.pos[1] - 1; // adjust vertical position to be under the tile
+        textMesh.position.z = tile.pos[2];
         this.TILE_GROUPS.forEach((obj) => obj.group.add(mesh.clone()));
       } else {
         new THREE.TextureLoader().load(tile.image, (tex) => {
@@ -337,6 +362,12 @@ class WorkCategory {
           adjustUVs(mesh, tex.image.height / tex.image.width);
           mesh.position.set(...tile.pos);
           mesh.userData = { slug: tile.slug };
+
+          // Position the text under the tile
+          textMesh.position.x = tile.pos[0]; // align horizontally with tile
+          textMesh.position.y = tile.pos[1] - 1; // adjust vertical position to be under the tile
+          textMesh.position.z = tile.pos[2];
+
           this.TILE_GROUPS.forEach((obj) => obj.group.add(mesh.clone()));
         });
       }
@@ -549,9 +580,13 @@ class WorkCategory {
         this.TOTAL_GRID_SIZE;
 
       let percentage = (normalizedPosY % this.GRID_SIZE) / this.GRID_SIZE;
+      let adjusted = this.factor === 0 ? 0.05 : 0;
+      percentage = Math.min(percentage + adjusted, 0.991)
+      console.log(percentage)
+
 
       if (index === 3) {
-        let activeIndex = Math.floor(percentage * this.images.length);
+        let activeIndex = Math.floor((percentage > 0.99 ? 0 : percentage) * this.images.length);
         let name = this.sortedTitles[activeIndex].name;
         let item = this.worksName.find((item) => item.dataset.name === name);
         //console.log(item);
@@ -563,6 +598,7 @@ class WorkCategory {
         //document.querySelector(".name").textContent = name;
         //console.log(percentage);
       }
+
 
       // Calculate distance from the nearest center position
       let distanceToCenter = Math.min(

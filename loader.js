@@ -189,8 +189,8 @@ class LoaderAnimation {
         opacity: 0,
         duration: 1,
         ease: "power3.inOut",
-      });
-
+      })
+      .to(".scroll-indicator", {clipPath: "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)", margin: "0 0", duration: 1, ease: "expo.out"}, "<0.5" )
     // Start the animation
     this.tl.play();
   }

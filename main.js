@@ -108,7 +108,8 @@ barba.init({
             opacity: 0,
             duration: 0.75,
             ease: "power3.inOut",
-          });
+          })
+        .to(".scroll-indicator", {clipPath: "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)", margin: "0 0", duration: 1, ease: "expo.out"}, "<0.5" )
         }
       },
     },

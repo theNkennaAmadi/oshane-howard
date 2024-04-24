@@ -7,6 +7,13 @@ import InertiaPlugin from "gsap/InertiaPlugin";
 import { DraggableImg} from "./global.js";
 
 gsap.registerPlugin(ScrollTrigger, Flip, Draggable, InertiaPlugin);
+
+function isTouchDevice() {
+  return ('ontouchstart' in window) ||
+      (navigator.maxTouchPoints > 0) ||
+      (navigator.msMaxTouchPoints > 0);
+}
+
 class Home {
   currIndex = 0;
   firstrun = true;
@@ -117,7 +124,7 @@ class Home {
           onEnterBack: () => {
             //Draggable.get(".hero-visual-list-wrapper").kill();
 
-            window.innerWidth > 479 ?
+            !isTouchDevice() ?
                 document.body.removeEventListener("mousemove", boundHandleMouseMove, true)
                 : null;
 
@@ -131,7 +138,7 @@ class Home {
               ease: "power3.inOut",
             });
             */
-            window.innerWidth > 479 ? gsap.to(".hero-visual-item", { pointerEvents: "none", opacity: 1 }) : null;
+            isTouchDevice() ? gsap.to(".hero-visual-item", { pointerEvents: "none", opacity: 1 }) : null;
            // gsap.to(".hero-visual-item", { pointerEvents: "none", opacity: 1 });
             gsap.to(".char", { yPercent: 120, opacity: 0 });
             gsap.to(".home-works-name-wrapper", { opacity: 0 });
@@ -146,7 +153,7 @@ class Home {
             //document.body.addEventListener("touchmove", boundHandleMouseMove, {passive: false})
             //this.activateDraggable();
 
-            window.innerWidth > 479 ?
+            !isTouchDevice() ?
                 document.body.addEventListener("mousemove", boundHandleMouseMove, true)
                 : new DraggableImg(document.querySelector(".hero-visual-list-wrapper"));
 

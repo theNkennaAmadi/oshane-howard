@@ -224,6 +224,9 @@ export class DraggableImg {
     gsap.to('.hero-visual-text', {opacity: 1, display: "block", duration: 0.3, ease: "expo.out"})
     gsap.to('.mb-info, .mb-logo', {opacity: 1, display: "block", duration: 0.3, ease: "expo.out"})
     gsap.to(".hero-visual-item", { pointerEvents: "auto !important" });
+    document.querySelectorAll(".hero-visual-item").forEach((item) => {
+      item.classList.add("active")
+    })
 
 
     this.drag = Draggable.create(proxy, {

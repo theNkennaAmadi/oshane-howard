@@ -23,6 +23,7 @@ class Projects {
     this.closeButton = container.querySelector(".v-close");
     this.info = container.querySelector(".v-info");
     this.videoDuration = container.querySelector(".v-duration-inner");
+    this.videoDurationWrapper = container.querySelector(".v-duration-outer-wrapper");
     this.remove();
     setTimeout(() => {
         this.init();
@@ -66,7 +67,9 @@ class Projects {
       this.scrollContainerWidth = -(
         this.scrollContainer.scrollWidth - window.innerWidth
       );
-      this.initHorizontalScroll();
+      setTimeout(()=>{
+        this.initHorizontalScroll();
+      }, 200)
       return -(this.scrollContainer.scrollWidth- window.innerWidth);
     });
 
@@ -82,9 +85,10 @@ class Projects {
     this.getinitScrollAmount();
     this.splitText();
     //this.initHorizontalScroll();
-    if (this.scrollContainer.dataset.type === "Motion") {
+    if (this.container.dataset.type === "Motion") {
       this.togglePlay();
     }
+
     //let inactiveNextItems = this.nextItems.filter((item) => item !== this.nextItems[this.randomNumber]);
     //gsap.set(inactiveNextItems, { display: "none", visibility: "hidden" });
   }
@@ -113,19 +117,22 @@ class Projects {
   }
   initHorizontalScroll() {
     let mm = gsap.matchMedia();
-
-    mm.add("(min-width: 480px)", () => {
-      this.scrollContainer = this.container.querySelector(".work-wrapper");
+    ScrollTrigger.clearScrollMemory()
+    mm.add("(max-width: 479px)", () => {
+      this.scrollContainer = this.container.querySelector(
+          ".work-visuals-wrapper"
+      );
       let horScroll = gsap.to(this.scrollContainer, {
-        x: () => this.scrollContainerWidth,
+        x: () => -this.scrollContainer.scrollWidth - window.innerWidth,
         ease: "none",
         scrollTrigger: {
           trigger: this.scrollContainer,
           start: "top top",
-          end: () => `+=${this.scrollContainerWidth * -1}`,
+          end: () => `+=${this.scrollContainerWidth * -1 }`,
           scrub: 1,
           pin: true,
-          //markers: true,
+          markers: true,
+          anticipatePin: 1,
           invalidateOnRefresh: true,
         },
       });
@@ -146,20 +153,19 @@ class Projects {
         },
       });
     });
-    mm.add("(max-width: 479px)", () => {
-      this.scrollContainer = this.container.querySelector(
-        ".work-visuals-wrapper"
-      );
+    mm.add("(min-width: 480px)", () => {
+      ScrollTrigger.clearScrollMemory()
+      this.scrollContainer = this.container.querySelector(".work-wrapper");
       let horScroll = gsap.to(this.scrollContainer, {
-        x: () => this.scrollContainerWidth - (window.innerWidth * 1.7),
+        x: () => - (this.scrollContainer.scrollWidth - window.innerWidth),
         ease: "none",
         scrollTrigger: {
           trigger: this.scrollContainer,
           start: "top top",
-          end: () => `+=${this.scrollContainerWidth * -1 }`,
+          end: () => `+=${this.scrollContainerWidth * -1}`,
           scrub: 1,
-          anticipatePin: 1,
           pin: true,
+          anticipatePin: 1,
           markers: true,
           invalidateOnRefresh: true,
         },
@@ -181,6 +187,7 @@ class Projects {
         },
       });
     });
+
   }
 
   togglePlayBtn(animation, direction, speed) {
@@ -215,40 +222,65 @@ class Projects {
       duration: 1.2,
     });
 
+
     //click event
-    this.videoControls.addEventListener("click", (e) => {
-      const isPaused = this.video.paused;
-      if (e.target.closest(".v-sound")) {
+    this.videoControls.querySelector(".v-sound").addEventListener("click", (e) => {
         this.video.muted = !this.video.muted;
         this.video.muted ? tlMute.reverse() : tlMute.play();
-      } else {
-        //video flip animation
-        let mm = gsap.matchMedia();
-        const state = Flip.getState(this.media);
-        mm.add("(min-width: 480px)", () => {
-          this.media.classList.toggle("active");
-          Flip.from(state, {
-            duration: 1.5,
-            ease: "power1.inOut",
-          });
-        });
+    })
 
-        if (isPaused) {
-          this.togglePlayBtn(animation, 1, 3);
-          this.video.play();
-          tl.play();
-        } else {
-          this.togglePlayBtn(animation, -1, 1);
-          this.video.pause();
-          tl.reverse();
-        }
+    let control = ()=>{
+      const isPaused = this.video.paused;
+      //video flip animation
+      let mm = gsap.matchMedia();
+      const state = Flip.getState(this.media);
+      mm.add("(min-width: 480px)", () => {
+        this.media.classList.toggle("active");
+        Flip.from(state, {
+          duration: 1.5,
+          ease: "power1.inOut",
+        });
+      });
+
+      if (isPaused) {
+        this.togglePlayBtn(animation, 1, 3);
+        this.video.play();
+        tl.play();
+      } else {
+        this.togglePlayBtn(animation, -1, 1);
+        this.video.pause();
+        tl.reverse();
       }
+    }
+
+    this.videoControls.querySelector(".v-play").addEventListener("click", (e) => {
+      control()
     });
+
+    this.closeButton.addEventListener("click", (e) => {
+      control()
+    });
+
+    this.videoDurationWrapper.addEventListener("click", (e) => {
+        const rect = this.videoDurationWrapper.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const width = this.videoDurationWrapper.offsetWidth;
+        const time = (x / width) * this.video.duration;
+        this.video.currentTime = time;
+        const progress = this.video.currentTime / this.video.duration;
+        gsap.to(this.videoDuration, {
+          width: `${progress * 100}%`,
+          ease: "linear",
+        });
+    });
+
     this.video.addEventListener("timeupdate", () => {
       const progress = this.video.currentTime / this.video.duration;
+      console.log(progress*100)
       gsap.to(this.videoDuration, {
         width: `${progress * 100}%`,
         ease: "linear",
+        duration: 0.3,
       });
     });
     this.closeButton.addEventListener("mouseenter", () => {
