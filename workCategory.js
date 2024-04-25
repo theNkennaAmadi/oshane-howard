@@ -431,7 +431,6 @@ class WorkCategory {
     this.textView = new THREE.Mesh(textViewGeo, textMaterial);
     this.textView.position.set(0, 0, 2);
     this.textView.visible = false
-    console.log(this.textView)
     this.scene.add(this.textView);
   }
 

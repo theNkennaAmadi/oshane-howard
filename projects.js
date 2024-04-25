@@ -47,7 +47,7 @@ class Projects {
   getScrollAmount() {
     this.scrollContainerWidth =
       this.scrollContainer.scrollWidth - window.innerWidth;
-    return -(this.scrollContainerWidth - window.innerWidth);
+    return -(this.scrollContainer.scrollWidth- window.innerWidth);
   }
 
   getinitScrollAmount() {
@@ -56,8 +56,10 @@ class Projects {
       (img) =>
         new Promise((resolve) => {
           if (img.complete) {
+            console.log(img, "complete", this.container.dataset.project_name)
             resolve();
           } else {
+            console.log(img, "complete2", this.container.dataset.project_name)
             img.addEventListener("load", resolve);
           }
         })
@@ -67,9 +69,7 @@ class Projects {
       this.scrollContainerWidth = -(
         this.scrollContainer.scrollWidth - window.innerWidth
       );
-      setTimeout(()=>{
-        this.initHorizontalScroll();
-      }, 200)
+      this.initHorizontalScroll();
       return -(this.scrollContainer.scrollWidth- window.innerWidth);
     });
 
@@ -88,7 +88,6 @@ class Projects {
     if (this.container.dataset.type === "Motion") {
       this.togglePlay();
     }
-
     //let inactiveNextItems = this.nextItems.filter((item) => item !== this.nextItems[this.randomNumber]);
     //gsap.set(inactiveNextItems, { display: "none", visibility: "hidden" });
   }
@@ -116,19 +115,22 @@ class Projects {
     });
   }
   initHorizontalScroll() {
+    console.log('initHorizontalScroll')
     let mm = gsap.matchMedia();
     ScrollTrigger.clearScrollMemory()
     mm.add("(max-width: 479px)", () => {
       this.scrollContainer = this.container.querySelector(
           ".work-visuals-wrapper"
       );
+      let a = this.scrollContainer.scrollWidth + window.innerWidth/1.5;
+      console.log(a)
       let horScroll = gsap.to(this.scrollContainer, {
-        x: () => -this.scrollContainer.scrollWidth - window.innerWidth,
+        x: ()=> -(a),
         ease: "none",
         scrollTrigger: {
-          trigger: this.scrollContainer,
+          trigger: this.scrollContainer.parentElement,
           start: "top top",
-          end: () => `+=${this.scrollContainerWidth * -1 }`,
+          end: () => `+=${a}`,
           scrub: 1,
           pin: true,
           markers: true,
