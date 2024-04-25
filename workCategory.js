@@ -66,8 +66,9 @@ class WorkCategory {
 
   loadFont() {
     const loader = new FontLoader();
-    loader.load('kaneda_gothic_black_regular.json', (font) => {
+    loader.load('https://cdn.shopify.com/s/files/1/0831/6996/8410/files/Kaneda_Gothic_Black_Regular.json?v=1713957257', (font) => {
       this.font = font;
+      this.addObjects();
     });
   }
 
@@ -91,16 +92,28 @@ class WorkCategory {
 
     //image tiles
     this.TILES = [...this.images];
+    const midIndex = Math.floor(this.TILES.length / 2);
+    const halfLength = this.TILES.length / 2;
 
     this.TILES.forEach((tile, index) => {
-      tile.pos = [
+      if (index < halfLength) {
+        tile.pos = [0, -this.TILE_SPACE * index, 0];
+      } else {
+        tile.pos = [0, this.TILE_SPACE * (this.TILES.length - index), 0];
+      }
+    });
+
+
+    /*
+    tile.pos = [
         0,
         this.TILE_SPACE *
           (-Math.floor(this.TILES.length / 2) + this.factor + index),
         0,
       ];
-    });
+     */
 
+    /*
     this.sortedTitles = this.TILES.toSorted((a, b) => {
       let aValue = a.pos[1];
       let bValue = b.pos[1];
@@ -120,6 +133,9 @@ class WorkCategory {
       if (bValue < 0) return 1;
     });
 
+     */
+    this.sortedTitles = this.TILES
+
     //console.log(this.sortedTitles);
 
     // clone groups
@@ -127,6 +143,7 @@ class WorkCategory {
       return { pos: [0, 0, 0], name: tile.name };
     });
 
+    /*
     this.TILE_GROUPS.forEach((tile, index) => {
       tile.pos = [
         0,
@@ -135,6 +152,17 @@ class WorkCategory {
         0,
       ];
     });
+
+     */
+
+    this.TILE_GROUPS.forEach((tile, index) => {
+      if (index < halfLength) {
+        tile.pos = [0, -this.GRID_SIZE * index, 0];
+      } else {
+        tile.pos = [0, this.GRID_SIZE * (this.TILE_GROUPS.length - index), 0];
+      }
+    });
+
 
     this.oldIndex = -1;
 
@@ -177,12 +205,15 @@ class WorkCategory {
   }
 
   showActiveItem(target) {
+
     this.currIndex = this.worksName.findIndex((item) => {
       return item.dataset.name === target.dataset.name;
     });
+
     this.activeName = target.dataset.name;
 
-    if (this.mediaTextures[this.currIndex].isVideoTexture) {
+
+    if (this.mediaTextures[this.currIndex]?.isVideoTexture) {
       let activeVideos = this.mediaTextures.find((item) => {
         return item.name === this.activeName;
       });
@@ -267,7 +298,7 @@ class WorkCategory {
 
   setupScene() {
     this.scene = new THREE.Scene();
-    this.addObjects();
+    //this.addObjects();
     // this.addLighting();
   }
 
@@ -285,14 +316,17 @@ class WorkCategory {
   addObjects() {
     this.TILES.forEach((tile, i) => {
       // Now add text under each tile
-      const textGeo = new TextGeometry(tile.name, {
+      const textGeo = new TextGeometry(tile.name.toUpperCase(), {
         font: this.font,
-        size: 0.5, // adjust size based on your needs
-        height: 0.1, // thickness of the text
-        curveSegments: 12
+        size: 0.4, // adjust size based on your needs
+        height: 0, // thickness of the text
+        curveSegments: 40,
+        depth: 5,
       });
+      textGeo.center()
+      //console.log(textGeo)
 
-      const textMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+      const textMaterial = new THREE.MeshBasicMaterial({ color: "#FDED05", transparent: false  });
       const textMesh = new THREE.Mesh(textGeo, textMaterial);
 
       let isVideo = tile.video && tile.video !== "";
@@ -345,11 +379,17 @@ class WorkCategory {
         let mesh = new THREE.Mesh(geometry, material);
         mesh.position.set(...tile.pos);
         mesh.userData = { slug: tile.slug };
+
         // Position the text under the tile
         textMesh.position.x = tile.pos[0]; // align horizontally with tile
-        textMesh.position.y = tile.pos[1] - 1; // adjust vertical position to be under the tile
+        textMesh.position.y = tile.pos[1] - 3.3; // adjust vertical position to be under the tile
         textMesh.position.z = tile.pos[2];
-        this.TILE_GROUPS.forEach((obj) => obj.group.add(mesh.clone()));
+        textMesh.needsUpdate = true;
+
+        window.innerWidth < 768 ? textMesh.visible = true : textMesh.visible = false;
+
+        this.TILE_GROUPS.forEach((obj) => obj.group.add(mesh.clone(), textMesh.clone()));
+
       } else {
         new THREE.TextureLoader().load(tile.image, (tex) => {
           let geometry = new THREE.PlaneBufferGeometry(
@@ -358,6 +398,7 @@ class WorkCategory {
           );
           this.mediaTextures = [...this.mediaTextures, tex];
           let material = new THREE.MeshBasicMaterial({ map: tex });
+          material.needsUpdate = true;
           let mesh = new THREE.Mesh(geometry, material);
           adjustUVs(mesh, tex.image.height / tex.image.width);
           mesh.position.set(...tile.pos);
@@ -365,15 +406,33 @@ class WorkCategory {
 
           // Position the text under the tile
           textMesh.position.x = tile.pos[0]; // align horizontally with tile
-          textMesh.position.y = tile.pos[1] - 1; // adjust vertical position to be under the tile
+          textMesh.position.y = tile.pos[1] - 3.3; // adjust vertical position to be under the tile
           textMesh.position.z = tile.pos[2];
+          textMesh.needsUpdate = true;
 
-          this.TILE_GROUPS.forEach((obj) => obj.group.add(mesh.clone()));
+          window.innerWidth < 768 ? textMesh.visible = true : textMesh.visible = false;
+
+          this.TILE_GROUPS.forEach((obj) => obj.group.add(mesh.clone(), textMesh.clone()));
         });
       }
     });
 
     this.TILE_GROUPS.forEach((obj) => this.scene.add(obj.group));
+    const textViewGeo = new TextGeometry("[ VIEW ]", {
+      font: this.font,
+      size: 0.2, // adjust size based on your needs
+      height: 0, // thickness of the text
+      curveSegments: 40,
+      depth: 5,
+    });
+    textViewGeo.center()
+
+    const textMaterial = new THREE.MeshBasicMaterial({ color: "#FDED05", transparent: false  });
+    this.textView = new THREE.Mesh(textViewGeo, textMaterial);
+    this.textView.position.set(0, 0, 2);
+    this.textView.visible = false
+    console.log(this.textView)
+    this.scene.add(this.textView);
   }
 
   setPositions() {
@@ -389,9 +448,7 @@ class WorkCategory {
         x: this.viewport.width / 2,
         y: this.viewport.height / 2,
       };
-      if (i === 4) {
-        ///console.log(posY);
-      }
+
 
       group.position.set(posX, posY, pos[2]);
 
@@ -426,10 +483,28 @@ class WorkCategory {
     if (this.screen.width < 768) {
       this.camera.position.z = 20;
       this.scroll.scale = 0.08;
+      this.TILE_GROUPS.forEach((tileGroup) => {
+        tileGroup.group.children.forEach((child) => {
+          if (child instanceof THREE.Mesh && child.geometry.type === "TextGeometry") {
+            child.visible = true;
+          }
+        });
+      });
+
+
     } else {
       this.camera.position.z = 10;
       this.scroll.scale = 0.02;
+      this.TILE_GROUPS.forEach((tileGroup) => {
+        tileGroup.group.children.forEach((child) => {
+          if (child instanceof THREE.Mesh && child.geometry.type === "TextGeometry") {
+            child.visible = false;
+          }
+        });
+      });
+
     }
+
 
     // update screen res uniform
     this.distortionShader.uniforms.uScreenRes.value = new THREE.Vector2(
@@ -516,6 +591,10 @@ class WorkCategory {
     this.mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
     this.mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
 
+    this.textView.position.set(this.mouse.x*3.5, this.mouse.y*2, 2);
+
+
+    this.textView.visible = true;
     // Update the picking ray with the camera and mouse position
     this.raycaster.setFromCamera(this.mouse, this.camera);
 
@@ -529,9 +608,13 @@ class WorkCategory {
     if (intersects.length > 0 && intersects[0].object instanceof THREE.Mesh) {
       // Change the cursor style to pointer
       document.body.style.cursor = "pointer";
+      //this.textView.visible = true;
+      gsap.to(this.textView.scale, {x:1, y: 1, z: 1, duration: 0.65, ease: "expo.out"})
     } else {
       // Change the cursor style to default
       document.body.style.cursor = "default";
+      //this.textView.visible = false;
+      gsap.to(this.textView.scale, {x:0, y: 0, z: 0, duration: 0.65, ease: "expo.out"})
     }
   }
 
@@ -579,10 +662,9 @@ class WorkCategory {
         ((posY % this.TOTAL_GRID_SIZE) + this.TOTAL_GRID_SIZE) %
         this.TOTAL_GRID_SIZE;
 
+
       let percentage = (normalizedPosY % this.GRID_SIZE) / this.GRID_SIZE;
-      let adjusted = this.factor === 0 ? 0.05 : 0;
-      percentage = Math.min(percentage + adjusted, 0.991)
-      console.log(percentage)
+      percentage = Math.min(percentage +0.05, 0.991)
 
 
       if (index === 3) {
@@ -605,10 +687,6 @@ class WorkCategory {
         Math.abs(normalizedPosY - 0),
         Math.abs(normalizedPosY - this.GRID_SIZE) % this.GRID_SIZE
       );
-
-      if (index === 4) {
-        //console.log("Distance to Center:", distanceToCenter);
-      }
 
       // Update the closest tile group to center if this one is closer
       if (distanceToCenter < minDistanceToCenter) {

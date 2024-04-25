@@ -19,6 +19,7 @@ class Home {
   firstrun = true;
   showIndicator = true;
   tlShowActive = gsap.timeline();
+  flipCtx = null;
   constructor(container) {
     this.container = container;
     this.heroVisualListWrapper = container.querySelector(
@@ -75,6 +76,8 @@ class Home {
 
   initFlip() {
 
+    this.flipCtx && this.flipCtx.revert();
+
     // Bind the handleMouseMove method to the class instance
     const boundHandleMouseMove = this.handleMouseMove.bind(this);
     this.heroVisuals.forEach((visual, index) => {
@@ -92,88 +95,96 @@ class Home {
       document.querySelector(".hero-visual-list").appendChild(document.querySelector(".mb-logo"))
       document.querySelector(".hero-visual-list").appendChild(document.querySelector(".mb-info"))
 
+      this.flipCtx = gsap.context(() => {
 
-      //Flip the hero visual items from fullscreen to grid
-      let state = Flip.getState(".hero-visual-list, .hero-visual-item, .hero-visual-list-wrapper");
-      this.container
-        .querySelector(".hero-visual-list")
-        .classList.toggle("flip-grid");
-      Flip.from(state, {
-        duration: 2,
-        ease: "expo.inOut",
-        //simple: true,
-        immediateRender: true,
-        scrollTrigger: {
-          trigger: ".hero-grid",
-          start: "top 0%",
-          end: () => "+=200%",
-          onUpdate: (self) => {
-            if (self.progress > 0.4) {
-              if (!updatedText) {
-                tlUpdate.play();
-                updatedText = !updatedText;
+        //Flip the hero visual items from fullscreen to grid
+        let state = Flip.getState(".hero-visual-list, .hero-visual-item, .hero-visual-list-wrapper");
+        this.container
+            .querySelector(".hero-visual-list")
+            .classList.toggle("flip-grid");
+        Flip.from(state, {
+          duration: 2,
+          ease: "expo.inOut",
+          //simple: true,
+          immediateRender: true,
+          scrollTrigger: {
+            trigger: ".hero-grid",
+            start: "top 0%",
+            end: () => "+=200%",
+            onUpdate: (self) => {
+              if (self.progress > 0.4) {
+                if (!updatedText) {
+                  tlUpdate.play();
+                  updatedText = !updatedText;
+                }
+              } else {
+                if (updatedText) {
+                  tlUpdate.reverse();
+                  updatedText = !updatedText;
+                }
               }
-            } else {
-              if (updatedText) {
-                tlUpdate.reverse();
-                updatedText = !updatedText;
+              gsap.to(".hero-visual-list-wrapper", {
+                scale: () => {
+                  return window.innerWidth > 479 ? (1 + self.progress * 0.5) : (1 + self.progress)
+                }, ease: "none"
+              })
+            },
+            onEnterBack: () => {
+              //Draggable.get(".hero-visual-list-wrapper").kill();
+
+              !isTouchDevice() ?
+                  document.body.removeEventListener("mousemove", boundHandleMouseMove, true)
+                  : null;
+
+              //document.body.removeEventListener("mousemove", boundHandleMouseMove, true)
+              //document.body.removeEventListener("touchmove", boundHandleMouseMove, {passive: false})
+              /*
+              gsap.to(".hero-visual-list-wrapper", {
+                x: 0,
+                y: 0,
+                duration: 1,
+                ease: "power3.inOut",
+              });
+              */
+              isTouchDevice() ? gsap.to(".hero-visual-item", {pointerEvents: "none", opacity: 1}) : null;
+              // gsap.to(".hero-visual-item", { pointerEvents: "none", opacity: 1 });
+              gsap.to(".char", {yPercent: 120, opacity: 0});
+              gsap.to(".home-works-name-wrapper", {opacity: 0});
+              //gsap.to('.hero-visual-text', {opacity: 0})
+              firstrun = true;
+            },
+            onLeave: () => {
+              gsap.to(".hero-visual-item", {pointerEvents: "auto"});
+              gsap.to(".home-works-name-wrapper", {opacity: 1});
+              //
+              //document.body.addEventListener("mousemove", boundHandleMouseMove, true)
+              //document.body.addEventListener("touchmove", boundHandleMouseMove, {passive: false})
+              //this.activateDraggable();
+
+              !isTouchDevice() ?
+                  document.body.addEventListener("mousemove", boundHandleMouseMove, true)
+                  : new DraggableImg(document.querySelector(".hero-visual-list-wrapper"));
+
+
+              //this.activateDraggable()
+              /*
+              if (this.showIndicator) {
+                gsap.to(".lottie-drag-wrapper", { display: "flex" });
+                gsap.to(".lottie-drag-wrapper", { display: "none", delay: 4 });
+                this.showIndicator = false;
               }
-            }
-            gsap.to(".hero-visual-list-wrapper", {scale: ()=>{return window.innerWidth > 479 ? (1+ self.progress*0.5) : (1+self.progress)}, ease: "none"})
+
+               */
+            },
+            pin: true,
+            scrub: 1,
+            markers: false,
+            invalidateOnRefresh: true,
           },
-          onEnterBack: () => {
-            //Draggable.get(".hero-visual-list-wrapper").kill();
+        });
 
-            !isTouchDevice() ?
-                document.body.removeEventListener("mousemove", boundHandleMouseMove, true)
-                : null;
-
-            //document.body.removeEventListener("mousemove", boundHandleMouseMove, true)
-            //document.body.removeEventListener("touchmove", boundHandleMouseMove, {passive: false})
-            /*
-            gsap.to(".hero-visual-list-wrapper", {
-              x: 0,
-              y: 0,
-              duration: 1,
-              ease: "power3.inOut",
-            });
-            */
-            isTouchDevice() ? gsap.to(".hero-visual-item", { pointerEvents: "none", opacity: 1 }) : null;
-           // gsap.to(".hero-visual-item", { pointerEvents: "none", opacity: 1 });
-            gsap.to(".char", { yPercent: 120, opacity: 0 });
-            gsap.to(".home-works-name-wrapper", { opacity: 0 });
-            //gsap.to('.hero-visual-text', {opacity: 0})
-            firstrun = true;
-          },
-          onLeave: () => {
-            gsap.to(".hero-visual-item", { pointerEvents: "auto" });
-            gsap.to(".home-works-name-wrapper", { opacity: 1 });
-            //
-            //document.body.addEventListener("mousemove", boundHandleMouseMove, true)
-            //document.body.addEventListener("touchmove", boundHandleMouseMove, {passive: false})
-            //this.activateDraggable();
-
-            !isTouchDevice() ?
-                document.body.addEventListener("mousemove", boundHandleMouseMove, true)
-                : new DraggableImg(document.querySelector(".hero-visual-list-wrapper"));
-
-
-            //this.activateDraggable()
-            /*
-            if (this.showIndicator) {
-              gsap.to(".lottie-drag-wrapper", { display: "flex" });
-              gsap.to(".lottie-drag-wrapper", { display: "none", delay: 4 });
-              this.showIndicator = false;
-            }
-
-             */
-          },
-          pin: true,
-          scrub: 1,
-          markers: false,
-          invalidateOnRefresh: true,
-        },
       });
+
 
       //Scale the hero list wrapper so that it looks like it's zooming in
       /*
@@ -243,6 +254,13 @@ class Home {
         tl.reverse()
       });
     });
+
+
+
+    window.addEventListener("orientationchange", () => {
+      location.reload()
+    })
+
   }
 
   showActiveNames(currIndex, index) {
