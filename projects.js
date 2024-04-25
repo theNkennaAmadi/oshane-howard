@@ -1,20 +1,26 @@
 import "splitting/dist/splitting.css";
 import Splitting from "splitting";
 import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { Flip } from "gsap/Flip";
+import {ScrollTrigger} from "gsap/ScrollTrigger";
+import {Flip} from "gsap/Flip";
+
 
 gsap.registerPlugin(ScrollTrigger, Flip);
 const lottie = Webflow.require("lottie").lottie;
 
 class Projects {
   fadeOutTimeout = null;
+  hasCrossedThreshold = false;
+  threshold = 478;
+  firstLoad = true;
+  ctx
   constructor(container) {
     this.container = container;
     this.scrollContainer = window.innerWidth > 479 ? container.querySelector(".work-wrapper") : container.querySelector(".work-visuals-wrapper");
     this.invisible = [...container.querySelectorAll(".w-condition-invisible")];
     this.nextItems = [...container.querySelectorAll(".next-up-cc-item")];
     this.initNextItems();
+    this.images = [...container.querySelectorAll(".work-visual-item")];
     //this.randomNumber = Math.floor(Math.random() * this.nextItems.length);
     //this.nextImage = this.nextItems[this.randomNumber].querySelector(".next-up-image");
     this.videoControls = container.querySelector(".video-controls");
@@ -56,10 +62,8 @@ class Projects {
       (img) =>
         new Promise((resolve) => {
           if (img.complete) {
-            console.log(img, "complete", this.container.dataset.project_name)
             resolve();
           } else {
-            console.log(img, "complete2", this.container.dataset.project_name)
             img.addEventListener("load", resolve);
           }
         })
@@ -88,6 +92,9 @@ class Projects {
     if (this.container.dataset.type === "Motion") {
       this.togglePlay();
     }
+    window.addEventListener("resize", ()=>{
+      this.checkWindowSize()
+    })
     //let inactiveNextItems = this.nextItems.filter((item) => item !== this.nextItems[this.randomNumber]);
     //gsap.set(inactiveNextItems, { display: "none", visibility: "hidden" });
   }
@@ -114,82 +121,151 @@ class Projects {
       delay: 0.3,
     });
   }
+
   initHorizontalScroll() {
-    console.log('initHorizontalScroll')
     let mm = gsap.matchMedia();
-    ScrollTrigger.clearScrollMemory()
-    mm.add("(max-width: 479px)", () => {
-      this.scrollContainer = this.container.querySelector(
-          ".work-visuals-wrapper"
-      );
-      let a = this.scrollContainer.scrollWidth + window.innerWidth/1.5;
-      console.log(a)
-      let horScroll = gsap.to(this.scrollContainer, {
-        x: ()=> -(a),
-        ease: "none",
-        scrollTrigger: {
-          trigger: this.scrollContainer.parentElement,
-          start: "top top",
-          end: () => `+=${a}`,
-          scrub: 1,
-          pin: true,
-          markers: true,
-          anticipatePin: 1,
-          invalidateOnRefresh: true,
-        },
-      });
+    this.ctx && this.ctx.revert() && mm.revert();
+    this.ctx = gsap.context(() => {
+      //ScrollTrigger.clearScrollMemory()
+      mm.add("(max-width: 479px)", () => {
+        ScrollTrigger.refresh();
+        this.scrollContainer = this.container.querySelector(
+            ".work-visuals-wrapper"
+        );
+        let getAmount = () =>{
+          return (this.scrollContainer.scrollWidth - window.innerWidth)
+        }
+        let horScroll = gsap.to(this.scrollContainer, {
+          x: () => -1 * (getAmount() - 50),
+          ease: "none",
+          scrollTrigger: {
+            trigger: this.scrollContainer.parentElement,
+            start: "top top",
+            end: () => "+=" + (getAmount()),
+            scrub: 1,
+            pin: true,
+           // markers: true,
+            anticipatePin: 1,
+            invalidateOnRefresh: true,
+          },
+        });
 
-      let tl = gsap.timeline();
-      tl.from(this.nextImage, {
-        scale: 0,
-        duration: 5,
-        ease: "expo.out",
-        scrollTrigger: {
+        /*
+        let tl = gsap.timeline();
+        tl.from(this.nextImage, {
+          scale: 0,
+          duration: 5,
+          ease: "expo.out",
+          scrollTrigger: {
+            containerAnimation: horScroll,
+            trigger: document.querySelector(".next-up-wrapper"),
+            start: "0% center",
+            end: "100% end",
+
+            //toggleActions: "play none none reverse",
+            scrub: 1,
+            //markers: true,
+          },
+        });
+
+         */
+        ScrollTrigger.create({
           containerAnimation: horScroll,
           trigger: document.querySelector(".next-up-wrapper"),
           start: "0% center",
-          end: "32% center",
-          //toggleActions: "play none none reverse",
+          //end: "100% end",
           scrub: 1,
-          //markers: true,
-        },
+        })
+      });
+      mm.add("(min-width: 480px)", () => {
+        ScrollTrigger.clearScrollMemory()
+        ScrollTrigger.refresh();
+        this.scrollContainer = this.container.querySelector(".work-wrapper");
+        //console.log(window.innerWidth)
+        //console.log(-1 * (this.scrollContainer.scrollWidth))
+       // console.log(-1 * (this.scrollContainer.scrollWidth - window.innerWidth))
+        /*
+        let getAmount = () =>{
+            return (this.scrollContainer.scrollWidth - window.innerWidth)
+        }
+
+         */
+        let a = (this.scrollContainer.scrollWidth - window.innerWidth)
+        let horScroll = gsap.to(this.scrollContainer, {
+          x: () => -1 * a,
+          ease: "none",
+          scrollTrigger: {
+            trigger: this.scrollContainer,
+            start: "top top",
+            end: () => "+=" + a,
+            scrub: 1,
+            pin: true,
+            anticipatePin: 1,
+            invalidateOnRefresh: true,
+          },
+        });
+
+        this.images.forEach((imageItem) => {
+          let tlImages = gsap.timeline();
+          tlImages.from(imageItem.querySelector("img"), {
+            scale: 0.2,
+            opacity: 0.2,
+            ease: "expo.out",
+            scrollTrigger:{
+              containerAnimation: horScroll,
+              trigger: imageItem,
+              start: "0% 100%",
+              end: "100% 100%",
+              scrub: 1,
+              once: true,
+            }
+          })
+        })
+
+        let tl = gsap.timeline();
+        tl.from(this.nextImage, {
+          scale: 0,
+          duration: 5,
+          ease: "expo.out",
+          scrollTrigger: {
+            containerAnimation: horScroll,
+            trigger: document.querySelector(".next-up-wrapper"),
+            start: "0% center",
+            end: "32% center",
+            //toggleActions: "play none none reverse",
+            scrub: 1,
+            //markers: true,
+          },
+        });
       });
     });
-    mm.add("(min-width: 480px)", () => {
-      ScrollTrigger.clearScrollMemory()
-      this.scrollContainer = this.container.querySelector(".work-wrapper");
-      let horScroll = gsap.to(this.scrollContainer, {
-        x: () => - (this.scrollContainer.scrollWidth - window.innerWidth),
-        ease: "none",
-        scrollTrigger: {
-          trigger: this.scrollContainer,
-          start: "top top",
-          end: () => `+=${this.scrollContainerWidth * -1}`,
-          scrub: 1,
-          pin: true,
-          anticipatePin: 1,
-          markers: true,
-          invalidateOnRefresh: true,
-        },
-      });
+    window.addEventListener("orientationchange", ()=>{
+        location.reload()
+    })
+  }
 
-      let tl = gsap.timeline();
-      tl.from(this.nextImage, {
-        scale: 0,
-        duration: 5,
-        ease: "expo.out",
-        scrollTrigger: {
-          containerAnimation: horScroll,
-          trigger: document.querySelector(".next-up-wrapper"),
-          start: "0% center",
-          end: "32% center",
-          //toggleActions: "play none none reverse",
-          scrub: 1,
-          //markers: true,
-        },
-      });
-    });
+  checkWindowSize() {
+    const currentWidth = window.innerWidth;
 
+    // Check if the current width is crossing the threshold
+    if ((currentWidth <= this.threshold && !this.hasCrossedThreshold) || (currentWidth > this.threshold && this.hasCrossedThreshold)) {
+      if(!this.firstLoad){
+        this.ctx.revert();
+        ScrollTrigger.getAll().forEach(trigger => trigger.kill());
+        ScrollTrigger.refresh();
+        setTimeout(() => {
+          this.initHorizontalScroll()
+        }, 1000)
+        ScrollTrigger.refresh();
+        location.reload()
+      }
+      this.firstLoad = false;
+
+     //location.reload();
+      //this.initHorizontalScroll()
+      // Toggle the hasCrossedThreshold flag when the threshold is crossed
+      this.hasCrossedThreshold = true
+    }
   }
 
   togglePlayBtn(animation, direction, speed) {
@@ -197,7 +273,7 @@ class Projects {
     animation.playSpeed = speed;
     animation.play();
   }
-
+f
   togglePlay() {
     const [animation] = lottie.getRegisteredAnimations();
     animation.firstFrame = 30.5;
@@ -226,7 +302,7 @@ class Projects {
 
 
     //click event
-    this.videoControls.querySelector(".v-sound").addEventListener("click", (e) => {
+    this.videoControls.querySelector(".v-sound").addEventListener("click", () => {
         this.video.muted = !this.video.muted;
         this.video.muted ? tlMute.reverse() : tlMute.play();
     })
@@ -255,11 +331,11 @@ class Projects {
       }
     }
 
-    this.videoControls.querySelector(".v-play").addEventListener("click", (e) => {
+    this.videoControls.querySelector(".v-play").addEventListener("click", () => {
       control()
     });
 
-    this.closeButton.addEventListener("click", (e) => {
+    this.closeButton.addEventListener("click", () => {
       control()
     });
 
@@ -267,8 +343,7 @@ class Projects {
         const rect = this.videoDurationWrapper.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const width = this.videoDurationWrapper.offsetWidth;
-        const time = (x / width) * this.video.duration;
-        this.video.currentTime = time;
+        this.video.currentTime = (x / width) * this.video.duration;
         const progress = this.video.currentTime / this.video.duration;
         gsap.to(this.videoDuration, {
           width: `${progress * 100}%`,
@@ -278,7 +353,6 @@ class Projects {
 
     this.video.addEventListener("timeupdate", () => {
       const progress = this.video.currentTime / this.video.duration;
-      console.log(progress*100)
       gsap.to(this.videoDuration, {
         width: `${progress * 100}%`,
         ease: "linear",
