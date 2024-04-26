@@ -149,6 +149,7 @@ class LoaderAnimation {
             // Settings for staggering animations for each item
             each: this.animationSettings.delayFactor, // Time between each item's animation
             onComplete: function () {
+              /*
               // Callback after each item finishes animating
               const targetElement = this.targets()[0]; // The element that just finished animating
               // Determining the index of the animated element within the original DOM NodeList
@@ -158,6 +159,7 @@ class LoaderAnimation {
                 // Set the opacity of the previous element to 0
                 gsap.set(this.items[index - 1].DOM.el, { opacity: 0 });
               }
+               */
             },
           },
           "clip-path": "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)", // Target shape of the clip-path

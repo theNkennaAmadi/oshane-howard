@@ -178,7 +178,6 @@ class Projects {
         })
       });
       mm.add("(min-width: 480px)", () => {
-        ScrollTrigger.clearScrollMemory()
         ScrollTrigger.refresh();
         this.scrollContainer = this.container.querySelector(".work-wrapper");
         //console.log(window.innerWidth)
@@ -191,13 +190,14 @@ class Projects {
 
          */
         let a = (this.scrollContainer.scrollWidth - window.innerWidth)
+
         let horScroll = gsap.to(this.scrollContainer, {
           x: () => -1 * a,
           ease: "none",
           scrollTrigger: {
             trigger: this.scrollContainer,
             start: "top top",
-            end: () => "+=" + a,
+            end: () => "+=" + a ,
             scrub: 1,
             pin: true,
             anticipatePin: 1,
@@ -205,6 +205,7 @@ class Projects {
           },
         });
 
+        /*
         this.images.forEach((imageItem) => {
           let tlImages = gsap.timeline();
           tlImages.from(imageItem, {
@@ -222,6 +223,8 @@ class Projects {
             }
           })
         })
+
+         */
 
         let tl = gsap.timeline();
         tl.from(this.nextImage, {
