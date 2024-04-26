@@ -205,26 +205,43 @@ class Projects {
           },
         });
 
+        gsap.set(".work-img-wrapper", {scale: 1})
+
+
         /*
         this.images.forEach((imageItem) => {
           let tlImages = gsap.timeline();
-          tlImages.from(imageItem, {
-            scale: 0.2,
-            opacity: 0.2,
-            willChange: "transform, opacity",
+          tlImages.from(imageItem.querySelector(".work-img-wrapper"), {
+            transform: "scale(0.5)",
+            //opacity: 0.2,
+            //willChange: "transform, opacity",
             ease: "expo.out",
             scrollTrigger:{
               containerAnimation: horScroll,
               trigger: imageItem,
-              start: "0% 100%",
-              end: "100% 70%",
+              //start: "0% 100%",
+              //end: "100% 70%",
               scrub: 1,
-             once: true,
+              //once: true,
+              markers: true,
+              invalidateOnRefresh: true,
             }
           })
         })
 
          */
+
+        ScrollTrigger.batch(".work-img-wrapper", {
+          onEnter: elements => {
+            gsap.from(elements, {
+              autoAlpha: 0,
+              scale: 0.2,
+              stagger: 0.2
+            });
+          },
+          containerAnimation: horScroll,
+        });
+
 
         let tl = gsap.timeline();
         tl.from(this.nextImage, {
