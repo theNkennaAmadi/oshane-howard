@@ -85,9 +85,10 @@ barba.init({
         backgroundColorReset(nextContainer);
         navInstance = new Nav(nextContainer);
         //new Home(nextContainer);
-        if (firstLoad) {
+        if (firstLoad && !sessionStorage.getItem("firstLoad")) {
           new LoaderAnimation(nextContainer);
           firstLoad = false;
+          sessionStorage.setItem("firstLoad", "false");
         } else {
           gsap.set(".preloader-wrapper, .preloader-line", {
             display: "none",
@@ -110,6 +111,7 @@ barba.init({
             ease: "power3.inOut",
           })
         .to(".scroll-indicator", {clipPath: "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)", margin: "0 0", duration: 1, ease: "expo.out"}, "<0.5" )
+          //sessionStorage.setItem("firstLoad", "false");
         }
       },
     },
@@ -155,7 +157,7 @@ barba.init({
       sync: true, //keep the previous and next container on the page at the same time
       enter(data) {
         let nextContainer = data.next.container;
-        let currentContainer = data.current.container;
+        //let currentContainer = data.current.container;
         nextContainer.classList.add('fixed')
         window.scroll(0, 0);
         backgroundColorReset(nextContainer);

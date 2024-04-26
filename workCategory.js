@@ -92,7 +92,7 @@ class WorkCategory {
 
     //image tiles
     this.TILES = [...this.images];
-    const midIndex = Math.floor(this.TILES.length / 2);
+    //const midIndex = Math.floor(this.TILES.length / 2);
     const halfLength = this.TILES.length / 2;
 
     this.TILES.forEach((tile, index) => {
@@ -314,7 +314,7 @@ class WorkCategory {
   }
 
   addObjects() {
-    this.TILES.forEach((tile, i) => {
+    this.TILES.forEach((tile) => {
       // Now add text under each tile
       const textGeo = new TextGeometry(tile.name.toUpperCase(), {
         font: this.font,
@@ -429,7 +429,7 @@ class WorkCategory {
 
     const textMaterial = new THREE.MeshBasicMaterial({ color: "#FDED05", transparent: false  });
     this.textView = new THREE.Mesh(textViewGeo, textMaterial);
-    this.textView.position.set(0, 0, 2);
+    this.textView.position.set(0, 0, 1);
     this.textView.visible = false
     this.scene.add(this.textView);
   }
@@ -547,7 +547,7 @@ class WorkCategory {
     };
   }
 
-  onTouchUp(e) {
+  onTouchUp() {
     this.isDown = false;
   }
 
@@ -572,7 +572,7 @@ class WorkCategory {
     const intersects = this.raycaster.intersectObjects(
       this.scene.children,
       true
-    );
+    ).filter(intersect => intersect.object !== this.textView);  // Filter out the textView;
 
     for (let i = 0; i < intersects.length; i++) {
       // Check if the intersected object is a mesh
@@ -683,7 +683,7 @@ class WorkCategory {
 
       // Calculate distance from the nearest center position
       let distanceToCenter = Math.min(
-        Math.abs(normalizedPosY - 0),
+        Math.abs(normalizedPosY ),
         Math.abs(normalizedPosY - this.GRID_SIZE) % this.GRID_SIZE
       );
 
@@ -709,10 +709,13 @@ class WorkCategory {
         y: lerp(this.scroll.current.y, this.scroll.target.y, this.scroll.ease),
       };
       //console.log(this.scroll.current.y % TOTAL_GRID_SIZE);
+      /*
       let activeIndex =
         Math.round(
           (this.scroll.current.y % this.TOTAL_GRID_SIZE) / this.images.length
         ) % this.images.length;
+
+       */
 
 
       // vertical dir

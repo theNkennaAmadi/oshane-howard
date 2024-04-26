@@ -207,17 +207,18 @@ class Projects {
 
         this.images.forEach((imageItem) => {
           let tlImages = gsap.timeline();
-          tlImages.from(imageItem.querySelector("img"), {
+          tlImages.from(imageItem, {
             scale: 0.2,
             opacity: 0.2,
+            willChange: "transform, opacity",
             ease: "expo.out",
             scrollTrigger:{
               containerAnimation: horScroll,
               trigger: imageItem,
               start: "0% 100%",
-              end: "100% 100%",
+              end: "100% 70%",
               scrub: 1,
-              once: true,
+             once: true,
             }
           })
         })

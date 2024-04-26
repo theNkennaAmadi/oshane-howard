@@ -13,23 +13,23 @@ function isTouchDevice() {
       (navigator.maxTouchPoints > 0) ||
       (navigator.msMaxTouchPoints > 0);
 }
-
 class Home {
   currIndex = 0;
   firstrun = true;
   showIndicator = true;
   tlShowActive = gsap.timeline();
-  flipCtx = null;
   constructor(container) {
     this.container = container;
     this.heroVisualListWrapper = container.querySelector(
-      ".hero-visual-list-wrapper"
+        ".hero-visual-list-wrapper"
     );
     this.heroVisualList = container.querySelector(".hero-visual-list");
     this.heroVisuals = [...container.querySelectorAll(".hero-visual-item")];
     this.heroGrid = container.querySelector(".hero-grid");
     this.initFlip();
     this.init();
+    // Initialize the width tracking
+    this.initResizeHandler();
   }
 
   //Helper function to group Array
@@ -76,8 +76,6 @@ class Home {
 
   initFlip() {
 
-    this.flipCtx && this.flipCtx.revert();
-
     // Bind the handleMouseMove method to the class instance
     const boundHandleMouseMove = this.handleMouseMove.bind(this);
     this.heroVisuals.forEach((visual, index) => {
@@ -95,96 +93,88 @@ class Home {
       document.querySelector(".hero-visual-list").appendChild(document.querySelector(".mb-logo"))
       document.querySelector(".hero-visual-list").appendChild(document.querySelector(".mb-info"))
 
-      this.flipCtx = gsap.context(() => {
 
-        //Flip the hero visual items from fullscreen to grid
-        let state = Flip.getState(".hero-visual-list, .hero-visual-item, .hero-visual-list-wrapper");
-        this.container
-            .querySelector(".hero-visual-list")
-            .classList.toggle("flip-grid");
-        Flip.from(state, {
-          duration: 2,
-          ease: "expo.inOut",
-          //simple: true,
-          immediateRender: true,
-          scrollTrigger: {
-            trigger: ".hero-grid",
-            start: "top 0%",
-            end: () => "+=200%",
-            onUpdate: (self) => {
-              if (self.progress > 0.4) {
-                if (!updatedText) {
-                  tlUpdate.play();
-                  updatedText = !updatedText;
-                }
-              } else {
-                if (updatedText) {
-                  tlUpdate.reverse();
-                  updatedText = !updatedText;
-                }
+      //Flip the hero visual items from fullscreen to grid
+      let state = Flip.getState(".hero-visual-list, .hero-visual-item, .hero-visual-list-wrapper");
+      this.container
+          .querySelector(".hero-visual-list")
+          .classList.toggle("flip-grid");
+      Flip.from(state, {
+        duration: 2,
+        ease: "expo.inOut",
+        //simple: true,
+        immediateRender: true,
+        scrollTrigger: {
+          trigger: ".hero-grid",
+          start: "top 0%",
+          end: () => "+=200%",
+          onUpdate: (self) => {
+            if (self.progress > 0.4) {
+              if (!updatedText) {
+                tlUpdate.play();
+                updatedText = !updatedText;
               }
-              gsap.to(".hero-visual-list-wrapper", {
-                scale: () => {
-                  return window.innerWidth > 479 ? (1 + self.progress * 0.5) : (1 + self.progress)
-                }, ease: "none"
-              })
-            },
-            onEnterBack: () => {
-              //Draggable.get(".hero-visual-list-wrapper").kill();
-
-              !isTouchDevice() ?
-                  document.body.removeEventListener("mousemove", boundHandleMouseMove, true)
-                  : null;
-
-              //document.body.removeEventListener("mousemove", boundHandleMouseMove, true)
-              //document.body.removeEventListener("touchmove", boundHandleMouseMove, {passive: false})
-              /*
-              gsap.to(".hero-visual-list-wrapper", {
-                x: 0,
-                y: 0,
-                duration: 1,
-                ease: "power3.inOut",
-              });
-              */
-              isTouchDevice() ? gsap.to(".hero-visual-item", {pointerEvents: "none", opacity: 1}) : null;
-              // gsap.to(".hero-visual-item", { pointerEvents: "none", opacity: 1 });
-              gsap.to(".char", {yPercent: 120, opacity: 0});
-              gsap.to(".home-works-name-wrapper", {opacity: 0});
-              //gsap.to('.hero-visual-text', {opacity: 0})
-              firstrun = true;
-            },
-            onLeave: () => {
-              gsap.to(".hero-visual-item", {pointerEvents: "auto"});
-              gsap.to(".home-works-name-wrapper", {opacity: 1});
-              //
-              //document.body.addEventListener("mousemove", boundHandleMouseMove, true)
-              //document.body.addEventListener("touchmove", boundHandleMouseMove, {passive: false})
-              //this.activateDraggable();
-
-              !isTouchDevice() ?
-                  document.body.addEventListener("mousemove", boundHandleMouseMove, true)
-                  : new DraggableImg(document.querySelector(".hero-visual-list-wrapper"));
-
-
-              //this.activateDraggable()
-              /*
-              if (this.showIndicator) {
-                gsap.to(".lottie-drag-wrapper", { display: "flex" });
-                gsap.to(".lottie-drag-wrapper", { display: "none", delay: 4 });
-                this.showIndicator = false;
+            } else {
+              if (updatedText) {
+                tlUpdate.reverse();
+                updatedText = !updatedText;
               }
-
-               */
-            },
-            pin: true,
-            scrub: 1,
-            markers: false,
-            invalidateOnRefresh: true,
+            }
+            gsap.to(".hero-visual-list-wrapper", {scale: ()=>{return window.innerWidth > 479 ? (1+ self.progress*0.5) : (1+self.progress)}, ease: "none"})
           },
-        });
+          onEnterBack: () => {
+            //Draggable.get(".hero-visual-list-wrapper").kill();
 
+            !isTouchDevice() ?
+                document.body.removeEventListener("mousemove", boundHandleMouseMove, true)
+                : null;
+
+            //document.body.removeEventListener("mousemove", boundHandleMouseMove, true)
+            //document.body.removeEventListener("touchmove", boundHandleMouseMove, {passive: false})
+            /*
+            gsap.to(".hero-visual-list-wrapper", {
+              x: 0,
+              y: 0,
+              duration: 1,
+              ease: "power3.inOut",
+            });
+            */
+            !isTouchDevice() ? gsap.to(".hero-visual-item", {pointerEvents: "none", opacity: 1}) : null;
+            // gsap.to(".hero-visual-item", { pointerEvents: "none", opacity: 1 });
+            gsap.to(".char", { yPercent: 120, opacity: 0 });
+            gsap.to(".home-works-name-wrapper", { opacity: 0 });
+            //gsap.to('.hero-visual-text', {opacity: 0})
+            firstrun = true;
+          },
+          onLeave: () => {
+            gsap.to(".hero-visual-item", { pointerEvents: "auto" });
+            gsap.to(".home-works-name-wrapper", { opacity: 1 });
+            //
+            //document.body.addEventListener("mousemove", boundHandleMouseMove, true)
+            //document.body.addEventListener("touchmove", boundHandleMouseMove, {passive: false})
+            //this.activateDraggable();
+
+            !isTouchDevice() ?
+                document.body.addEventListener("mousemove", boundHandleMouseMove, true)
+                : new DraggableImg(document.querySelector(".hero-visual-list-wrapper"));
+
+
+            //this.activateDraggable()
+            /*
+            if (this.showIndicator) {
+              gsap.to(".lottie-drag-wrapper", { display: "flex" });
+              gsap.to(".lottie-drag-wrapper", { display: "none", delay: 4 });
+              this.showIndicator = false;
+            }
+
+             */
+          },
+          pin: true,
+          scrub: 1,
+          markers: false,
+          invalidateOnRefresh: true,
+        },
       });
-
 
       //Scale the hero list wrapper so that it looks like it's zooming in
       /*
@@ -205,6 +195,24 @@ class Home {
     }, 50);
   }
 
+  initResizeHandler() {
+    // Store the initial width
+    this.lastWidth = window.innerWidth;
+
+    window.addEventListener("resize", this.handleResize.bind(this));
+  }
+
+  handleResize() {
+    const currentWidth = window.innerWidth;
+    if (currentWidth !== this.lastWidth) {
+      // Only reload the page if the width has changed
+      window.location.reload();
+    }
+    // Update the last known width
+    this.lastWidth = currentWidth;
+  }
+
+
   addVisualsEventListeners() {
     this.heroVisuals.forEach((visual, index) => {
       let oItems = this.heroVisuals.filter((item) => item !== visual);
@@ -212,27 +220,27 @@ class Home {
 
       let tl = gsap.timeline({ paused: true });
       tl.fromTo(
-        visual,
-        { scale: 1, opacity: 1, ease: "expo.inOut", duration: 0.8 },
-        {
-          scale: 1.1,
-          opacity: 1,
-          duration: 0.6,
-          force3D: true,
-          ease: "expo.inOut",
-        }
+          visual,
+          { scale: 1, opacity: 1, ease: "expo.inOut", duration: 0.8 },
+          {
+            scale: 1.1,
+            opacity: 1,
+            duration: 0.6,
+            force3D: true,
+            ease: "expo.inOut",
+          }
       );
       tl.fromTo(
-        oItems,
-        { scale: 1, opacity: 1, ease: "expo.inOut", duration: 0.8 },
-        {
-          scale: 1,
-          opacity: 0.4,
-          duration: 0.6,
-          ease: "expo.inOut",
-          force3D: true,
-        },
-        "<"
+          oItems,
+          { scale: 1, opacity: 1, ease: "expo.inOut", duration: 0.8 },
+          {
+            scale: 1,
+            opacity: 0.4,
+            duration: 0.6,
+            ease: "expo.inOut",
+            force3D: true,
+          },
+          "<"
       );
 
       //visual.style.zIndex = index + 5;
@@ -254,13 +262,6 @@ class Home {
         tl.reverse()
       });
     });
-
-
-
-    window.addEventListener("orientationchange", () => {
-      location.reload()
-    })
-
   }
 
   showActiveNames(currIndex, index) {
@@ -275,18 +276,18 @@ class Home {
       },
     });
     this.tlShowActive.to(
-      [...this.charGroups[currIndex][1]],
-      {
-        yPercent: 120,
-        opacity: 0.5,
-        stagger: {
-          amount: 0.05,
-          from: "center",
-          grid: "auto",
-          ease: "linear",
+        [...this.charGroups[currIndex][1]],
+        {
+          yPercent: 120,
+          opacity: 0.5,
+          stagger: {
+            amount: 0.05,
+            from: "center",
+            grid: "auto",
+            ease: "linear",
+          },
         },
-      },
-      "<"
+        "<"
     );
     this.tlShowActive.to([...this.charGroups[index][0]], {
       yPercent: 0,
@@ -299,18 +300,18 @@ class Home {
       },
     });
     this.tlShowActive.to(
-      [...this.charGroups[index][1]],
-      {
-        yPercent: 0,
-        opacity: 1,
-        stagger: {
-          amount: 0.05,
-          from: "center",
-          grid: "auto",
-          ease: "linear",
+        [...this.charGroups[index][1]],
+        {
+          yPercent: 0,
+          opacity: 1,
+          stagger: {
+            amount: 0.05,
+            from: "center",
+            grid: "auto",
+            ease: "linear",
+          },
         },
-      },
-      "<"
+        "<"
     );
   }
 
