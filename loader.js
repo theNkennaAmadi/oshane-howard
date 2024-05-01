@@ -3,6 +3,7 @@ import gsap from "gsap";
 import Odometer from "odometer";
 import "odometer/themes/odometer-theme-default.css";
 import Home from "./index.js";
+import {isTouchDevice} from "./global.js";
 
 class LoaderAnimation {
   items = []; // Array to store instances of the Item class
@@ -27,6 +28,7 @@ class LoaderAnimation {
     gsap.set(".preloader-wrapper > *", { opacity: 1 });
     this.odometer();
     gsap.set(".hero-visual-intro", {display: "grid"});
+    isTouchDevice() ? gsap.set(".scroll-indicator.mobile", {opacity: 1}) : gsap.set(".scroll-indicator.desktop", {opacity: 1});
   }
 
   odometer() {

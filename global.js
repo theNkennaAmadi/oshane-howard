@@ -232,7 +232,7 @@ export class DraggableImg {
     gsap.set(proxy, {scale:2})
 
     gsap.to('.hero-visual-text', {opacity: 1, display: "block", duration: 0.3, ease: "expo.out"})
-    gsap.to('.mb-info, .mb-logo', {opacity: 1, display: "block", duration: 0.3, ease: "expo.out"})
+    window.innerWidth < 767 && gsap.to('.mb-info, .mb-logo', {opacity: 1, display: "block", duration: 0.3, ease: "expo.out"})
     gsap.to(".hero-visual-item", { pointerEvents: "auto !important" });
     document.querySelectorAll(".hero-visual-item").forEach((item) => {
       item.classList.add("active")

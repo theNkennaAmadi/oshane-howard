@@ -8,7 +8,7 @@ gsap.config({
 
 import Projects from "./projects.js";
 import Info from "./info.js";
-import { Nav, backgroundColorReset } from "./global.js";
+import {Nav, backgroundColorReset, isTouchDevice} from "./global.js";
 import WorkCategory from "./workCategory.js";
 import Home from "./index.js";
 import LoaderAnimation from "./loader.js";
@@ -88,8 +88,9 @@ barba.init({
         if (firstLoad && !sessionStorage.getItem("firstLoad")) {
           new LoaderAnimation(nextContainer);
           firstLoad = false;
-          sessionStorage.setItem("firstLoad", "false");
+          //sessionStorage.setItem("firstLoad", "false");
         } else {
+          isTouchDevice() ? gsap.set(".scroll-indicator.mobile", {opacity: 1}) : gsap.set(".scroll-indicator.desktop", {opacity: 1});
           gsap.set(".preloader-wrapper, .preloader-line", {
             display: "none",
           });

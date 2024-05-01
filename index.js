@@ -11,6 +11,10 @@ gsap.registerPlugin(ScrollTrigger, Flip, Draggable, InertiaPlugin);
 
 //ScrollTrigger.normalizeScroll(true);
 
+gsap.config({
+  force3D: true,
+})
+
 
 class Home {
   currIndex = 0;
@@ -25,7 +29,7 @@ class Home {
     this.heroVisualList = container.querySelector(".hero-visual-list");
     this.heroVisuals = [...container.querySelectorAll(".hero-visual-item")];
     this.heroGrid = container.querySelector(".hero-grid");
-    this.initFlip();
+    this.heroText = container.querySelector(".hero-text");
     this.init();
     // Initialize the width tracking
     this.initResizeHandler();
@@ -46,9 +50,34 @@ class Home {
     this.visualInner.classList.add("visual-inner");
     this.visualHighlight.appendChild(this.visualInner);
 
+    isTouchDevice() && gsap.set(".home-works-name-wrapper", {display: 'none'})
+
+
+    !isTouchDevice() && this.initFlip();
+    isTouchDevice() && this.heroText.addEventListener("click", () => {
+      /*
+      gsap.set(".hero-visual-list-wrapper", {transform: 'scale(2)', ease: "ease", willChange: 'transform', duration: 0.5,
+        onComplete: () => {
+            this.activateMobileFlip();
+        }
+      })
+
+       */
+        this.activateMobileFlip();
+    })
+
+    //hide the Oshane logo text and change nav color to black
+    this.tlUpdate = gsap.timeline({ paused: true });
+    this.tlUpdate.set(".hero-text", { display: "none" });
+    this.tlUpdate.to(".nav-wrapper", { color: "black" });
+
     this.initSplitting();
 
     this.addVisualsEventListeners();
+  }
+
+  initDevice(){
+
   }
 
   initSplitting() {
@@ -85,14 +114,6 @@ class Home {
       let firstrun = this.firstrun;
       let updatedText = false;
 
-      //hide the Oshane logo text and change nav color to black
-      let tlUpdate = gsap.timeline({ paused: true });
-      tlUpdate.set(".hero-text", { display: "none" });
-      tlUpdate.to(".nav-wrapper", { color: "black" });
-
-      document.querySelector(".hero-visual-list").appendChild(document.querySelector(".mb-logo"))
-      document.querySelector(".hero-visual-list").appendChild(document.querySelector(".mb-info"))
-
 
       //Flip the hero visual items from fullscreen to grid
       let state = Flip.getState(".hero-visual-list, .hero-visual-item, .hero-visual-list-wrapper");
@@ -113,69 +134,32 @@ class Home {
           onUpdate: (self) => {
             if (self.progress > 0.4) {
               if (!updatedText) {
-                tlUpdate.play();
+                this.tlUpdate.play();
                 updatedText = !updatedText;
               }
             } else {
               if (updatedText) {
-                tlUpdate.reverse();
+                this.tlUpdate.reverse();
                 updatedText = !updatedText;
               }
             }
             gsap.to(".hero-visual-list-wrapper", {scale: ()=>{return window.innerWidth > 479 ? (1+ self.progress*0.5) : (1+self.progress)}, ease: "none", willChange: 'transform'})
           },
           onEnterBack: () => {
-            //Draggable.get(".hero-visual-list-wrapper").kill();
 
-            !isTouchDevice() ?
-                document.body.removeEventListener("mousemove", boundHandleMouseMove, true)
-                : null;
-
-            //document.body.removeEventListener("mousemove", boundHandleMouseMove, true)
-            //document.body.removeEventListener("touchmove", boundHandleMouseMove, {passive: false})
-            /*
-            gsap.to(".hero-visual-list-wrapper", {
-              x: 0,
-              y: 0,
-              duration: 1,
-              ease: "power3.inOut",
-            });
-            */
-            //console.log(isTouchDevice())
-            !isTouchDevice() ? gsap.to(".hero-visual-item", {pointerEvents: "none", opacity: 1}) : null;
-            // gsap.to(".hero-visual-item", { pointerEvents: "none", opacity: 1 });
+            document.body.removeEventListener("mousemove", boundHandleMouseMove, true)
+            gsap.to(".hero-visual-item", {pointerEvents: "none", opacity: 1})
             gsap.to(".char", { yPercent: 120, opacity: 0 });
             gsap.to(".home-works-name-wrapper", { opacity: 0 });
-            //gsap.to('.hero-visual-text', {opacity: 0})
             firstrun = true;
           },
           onLeave: () => {
             gsap.to(".hero-visual-item", { pointerEvents: "auto" });
             gsap.to(".home-works-name-wrapper", { opacity: 1 });
-            //
-            //document.body.addEventListener("mousemove", boundHandleMouseMove, true)
-            //document.body.addEventListener("touchmove", boundHandleMouseMove, {passive: false})
-            //this.activateDraggable();
-
-            //console.log(isTouchDevice())
-
-            !isTouchDevice() ?
-                document.body.addEventListener("mousemove", boundHandleMouseMove, true)
-                : new DraggableImg(document.querySelector(".hero-visual-list-wrapper"));
-
-
-            //this.activateDraggable()
-            /*
-            if (this.showIndicator) {
-              gsap.to(".lottie-drag-wrapper", { display: "flex" });
-              gsap.to(".lottie-drag-wrapper", { display: "none", delay: 4 });
-              this.showIndicator = false;
-            }
-
-             */
+            document.body.addEventListener("mousemove", boundHandleMouseMove, true)
           },
           pin: true,
-          scrub: true,
+          scrub: 1,
           markers: false,
           invalidateOnRefresh: true,
         },
@@ -197,7 +181,7 @@ class Home {
       });
 
        */
-    }, 120);
+    }, 250);
   }
 
   initResizeHandler() {
@@ -205,6 +189,32 @@ class Home {
     this.lastWidth = window.innerWidth;
 
     window.addEventListener("resize", this.handleResize.bind(this));
+  }
+
+  activateMobileFlip(){
+    let state = Flip.getState(".hero-visual-list, .hero-visual-item");
+    this.container
+        .querySelector(".hero-visual-list")
+        .classList.toggle("flip-grid");
+    this.tlUpdate.play();
+    Flip.from(state, {
+      duration: 2,
+      ease: "expo.inOut",
+      simple: true,
+      //scale: true,
+      willChange: "transform",
+      immediateRender: false,
+      onStart: () => {
+       // gsap.to(".hero-visual-list-wrapper", {scale: 2, willChange: 'transform', ease: "expo.out", duration: 2})
+      },
+      onComplete: () => {
+        new DraggableImg(document.querySelector(".hero-visual-list-wrapper"));
+        gsap.to(".hero-visual-item", { pointerEvents: "auto" });
+        gsap.to(".home-works-name-wrapper", { opacity: 1 });
+        window.innerWidth < 767 &&  document.querySelector(".hero-visual-list").appendChild(document.querySelector(".mb-logo"))
+        window.innerWidth < 767 && document.querySelector(".hero-visual-list").appendChild(document.querySelector(".mb-info"))
+      },
+    });
   }
 
   handleResize() {
