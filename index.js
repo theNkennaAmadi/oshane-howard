@@ -114,7 +114,7 @@ class Home {
           trigger: ".hero-grid",
           start: ()=>{return window.innerWidth > 991 ? "top 0%" : "top 0.1%"},
           //immediateRender: false,
-          end: () => "+=200%",
+          end: () => {return window.innerWidth > 991 ? "+=200%" : "+=100%"},
           onUpdate: (self) => {
             if (self.progress > 0.4) {
               if (!updatedText) {
