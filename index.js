@@ -5,8 +5,11 @@ import Splitting from "splitting";
 import { Draggable } from "gsap/Draggable";
 import InertiaPlugin from "gsap/InertiaPlugin";
 import { DraggableImg} from "./global.js";
+import Lenis from "@studio-freight/lenis";
 
 gsap.registerPlugin(ScrollTrigger, Flip, Draggable, InertiaPlugin);
+
+//ScrollTrigger.normalizeScroll(true);
 
 function isTouchDevice() {
   return ('ontouchstart' in window) ||
@@ -74,6 +77,7 @@ class Home {
     this.charGroups = this.groupItems(chars);
   }
 
+
   initFlip() {
 
     // Bind the handleMouseMove method to the class instance
@@ -103,6 +107,7 @@ class Home {
         duration: 2,
         ease: "expo.inOut",
         //simple: true,
+        willChange: "transform",
         immediateRender: true,
         scrollTrigger: {
           trigger: ".hero-grid",
@@ -120,7 +125,7 @@ class Home {
                 updatedText = !updatedText;
               }
             }
-            gsap.to(".hero-visual-list-wrapper", {scale: ()=>{return window.innerWidth > 479 ? (1+ self.progress*0.5) : (1+self.progress)}, ease: "none"})
+            gsap.to(".hero-visual-list-wrapper", {scale: ()=>{return window.innerWidth > 479 ? (1+ self.progress*0.5) : (1+self.progress)}, ease: "none", willChange: 'transform'})
           },
           onEnterBack: () => {
             //Draggable.get(".hero-visual-list-wrapper").kill();
@@ -139,6 +144,7 @@ class Home {
               ease: "power3.inOut",
             });
             */
+            //console.log(isTouchDevice())
             !isTouchDevice() ? gsap.to(".hero-visual-item", {pointerEvents: "none", opacity: 1}) : null;
             // gsap.to(".hero-visual-item", { pointerEvents: "none", opacity: 1 });
             gsap.to(".char", { yPercent: 120, opacity: 0 });
@@ -153,6 +159,8 @@ class Home {
             //document.body.addEventListener("mousemove", boundHandleMouseMove, true)
             //document.body.addEventListener("touchmove", boundHandleMouseMove, {passive: false})
             //this.activateDraggable();
+
+            //console.log(isTouchDevice())
 
             !isTouchDevice() ?
                 document.body.addEventListener("mousemove", boundHandleMouseMove, true)
@@ -170,7 +178,7 @@ class Home {
              */
           },
           pin: true,
-          scrub: 1,
+          scrub: true,
           markers: false,
           invalidateOnRefresh: true,
         },

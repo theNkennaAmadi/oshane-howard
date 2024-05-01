@@ -125,14 +125,15 @@ class LoaderAnimation {
       .fromTo(
         this.DOMlayers,
         {
-          scale: 0.9,
+          transform: 'scale(0.9)',
         },
         {
           duration:
             this.animationSettings.duration +
             this.animationSettings.delayFactor * (this.items.length - 1),
           ease: "linear",
-          scale: 1,
+          willChange: "transform",
+          transform: 'scale(1)',
         },
         0
       )
@@ -140,8 +141,8 @@ class LoaderAnimation {
         allItems,
         {
           // Initial animation state
-          opacity: 1, // Fully visible
-          "clip-path": "polygon(100% 0%, 100% 0%, 100% 100%, 100% 100%)", // CSS clip-path shape
+          //opacity: 1, // Fully visible
+          clipPath: "polygon(100% 0%, 100% 0%, 100% 100%, 100% 100%)", // CSS clip-path shape
         },
         {
           // Animation target state
@@ -162,7 +163,8 @@ class LoaderAnimation {
                */
             },
           },
-          "clip-path": "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)", // Target shape of the clip-path
+          willChange: "clip-path", // Optimize for performance
+          clipPath: "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)", // Target shape of the clip-path
         },
         0
       )

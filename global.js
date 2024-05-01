@@ -188,6 +188,10 @@ const findDifference = (array1, array2) => {
   return array1.filter((element) => !array2.includes(element));
 };
 
+function isAndroid() {
+  return /Android/i.test(navigator.userAgent);
+}
+
 export function debounce(func, wait) {
   let timeout;
   return function executedFunction(...args) {
@@ -234,6 +238,7 @@ export class DraggableImg {
       trigger: container,
       bounds: ".hero-grid",
       edgeResistance: 0.75,
+      allowEventDefault: isAndroid(), //fixes an issue with Android touch devices: https://gsap.com/community/forums/topic/15027-draggable-android-issue-clicking-links-with-dragclickablestrue/
       onPressInit() {
         align();
         xTo.tween.pause();
