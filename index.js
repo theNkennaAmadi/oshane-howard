@@ -197,7 +197,7 @@ class Home {
       });
 
        */
-    }, 100);
+    }, 120);
   }
 
   initResizeHandler() {
