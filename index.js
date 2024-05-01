@@ -5,18 +5,13 @@ import Splitting from "splitting";
 import { Draggable } from "gsap/Draggable";
 import InertiaPlugin from "gsap/InertiaPlugin";
 import { DraggableImg} from "./global.js";
-import Lenis from "@studio-freight/lenis";
-import {isAndroid} from "./global.js";
+import {isTouchDevice} from "./global.js";
 
 gsap.registerPlugin(ScrollTrigger, Flip, Draggable, InertiaPlugin);
 
 //ScrollTrigger.normalizeScroll(true);
 
-function isTouchDevice() {
-  return ('ontouchstart' in window) ||
-      (navigator.maxTouchPoints > 0) ||
-      (navigator.msMaxTouchPoints > 0);
-}
+
 class Home {
   currIndex = 0;
   firstrun = true;
@@ -105,7 +100,7 @@ class Home {
           .querySelector(".hero-visual-list")
           .classList.toggle("flip-grid");
       Flip.from(state, {
-        duration: 2,
+        duration: 0.5,
         ease: "expo.inOut",
         simple: true,
         willChange: "transform",

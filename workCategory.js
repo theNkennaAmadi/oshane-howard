@@ -11,7 +11,7 @@ import {
 import fragment from "./fragment.glsl";
 import vertex from "./vertex.glsl";
 import Splitting from "splitting";
-import { debounce } from "./global.js";
+import {debounce, isTouchDevice} from "./global.js";
 import ColorThief from "colorthief";
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
@@ -328,6 +328,7 @@ class WorkCategory {
 
       const textMaterial = new THREE.MeshBasicMaterial({ color: "#FDED05", transparent: false  });
       const textMesh = new THREE.Mesh(textGeo, textMaterial);
+      textMesh.userData = { slug: tile.slug };
 
       let isVideo = tile.video && tile.video !== "";
 
@@ -593,7 +594,7 @@ class WorkCategory {
     this.textView.position.set(this.mouse.x*3.5, this.mouse.y*2, 2);
 
 
-    this.textView.visible = true;
+    this.textView.visible = !isTouchDevice();
     // Update the picking ray with the camera and mouse position
     this.raycaster.setFromCamera(this.mouse, this.camera);
 

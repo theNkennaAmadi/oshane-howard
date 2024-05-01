@@ -192,6 +192,12 @@ export function isAndroid() {
   return /Android/i.test(navigator.userAgent);
 }
 
+export function isTouchDevice() {
+  return ('ontouchstart' in window) ||
+      (navigator.maxTouchPoints > 0) ||
+      (navigator.msMaxTouchPoints > 0);
+}
+
 export function debounce(func, wait) {
   let timeout;
   return function executedFunction(...args) {

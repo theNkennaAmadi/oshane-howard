@@ -125,6 +125,7 @@ class LoaderAnimation {
       .fromTo(
         this.DOMlayers,
         {
+          willChange: "transform",
           transform: 'scale(0.9)',
         },
         {
@@ -142,6 +143,7 @@ class LoaderAnimation {
         {
           // Initial animation state
           //opacity: 1, // Fully visible
+          willChange: "clip-path", // Optimize for performance
           clipPath: "polygon(100% 0%, 100% 0%, 100% 100%, 100% 100%)", // CSS clip-path shape
         },
         {
@@ -165,22 +167,6 @@ class LoaderAnimation {
           },
           willChange: "clip-path", // Optimize for performance
           clipPath: "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)", // Target shape of the clip-path
-        },
-        0
-      )
-      .fromTo(
-        allInnerItems,
-        {
-          // Starting state for 'inner' elements' animation
-          xPercent: 0,
-          //filter: "brightness(10%)", // CSS filters to adjust color
-          force3D: true, // Force 3D rendering for smoother animations
-        },
-        {
-          // Animation target state
-          stagger: this.animationSettings.delayFactor * 1.2, // Stagger settings similar to above
-          //filter: "brightness(100%)", // Full brightness
-          force3D: true, // Force 3D rendering for smoother animations
         },
         0
       )
