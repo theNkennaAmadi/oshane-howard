@@ -6,6 +6,7 @@ import { Draggable } from "gsap/Draggable";
 import InertiaPlugin from "gsap/InertiaPlugin";
 import { DraggableImg} from "./global.js";
 import Lenis from "@studio-freight/lenis";
+import {isAndroid} from "./global.js";
 
 gsap.registerPlugin(ScrollTrigger, Flip, Draggable, InertiaPlugin);
 
@@ -106,12 +107,13 @@ class Home {
       Flip.from(state, {
         duration: 2,
         ease: "expo.inOut",
-        //simple: true,
+        simple: true,
         willChange: "transform",
         immediateRender: true,
         scrollTrigger: {
           trigger: ".hero-grid",
-          start: "top 0%",
+          start: ()=>{return window.innerWidth > 991 ? "top 0%" : "top 0.1%"},
+          //immediateRender: false,
           end: () => "+=200%",
           onUpdate: (self) => {
             if (self.progress > 0.4) {
@@ -200,7 +202,7 @@ class Home {
       });
 
        */
-    }, 50);
+    }, 0);
   }
 
   initResizeHandler() {
