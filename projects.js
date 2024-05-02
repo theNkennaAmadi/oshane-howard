@@ -16,7 +16,8 @@ class Projects {
   ctx
   constructor(container) {
     this.container = container;
-    this.scrollContainer = window.innerWidth > 479 ? container.querySelector(".work-wrapper") : container.querySelector(".work-visuals-wrapper");
+    this.scrollContainer = container.querySelector(".work-visuals-wrapper");
+    this.workWrapper = container.querySelector(".work-wrapper");
     this.invisible = [...container.querySelectorAll(".w-condition-invisible")];
     this.nextItems = [...container.querySelectorAll(".next-up-cc-item")];
     this.initNextItems();
@@ -50,12 +51,6 @@ class Projects {
     this.invisible.map((el) => el.remove());
   }
 
-  getScrollAmount() {
-    this.scrollContainerWidth =
-      this.scrollContainer.scrollWidth - window.innerWidth;
-    return -(this.scrollContainer.scrollWidth- window.innerWidth);
-  }
-
   getinitScrollAmount() {
     const images = Array.from(this.scrollContainer.querySelectorAll("img"));
     const allImagesLoaded = images.map(
@@ -70,17 +65,16 @@ class Projects {
     );
 
     Promise.all(allImagesLoaded).then(() => {
-      this.scrollContainerWidth = -(
-        this.scrollContainer.scrollWidth - window.innerWidth
-      );
       this.initHorizontalScroll();
-      return -(this.scrollContainer.scrollWidth- window.innerWidth);
     });
 
     window.addEventListener("resize", () => {
+      /*
       this.scrollContainerWidth = -(
         this.scrollContainer.scrollWidth - window.innerWidth
       );
+
+       */
     })
   }
 
@@ -129,9 +123,7 @@ class Projects {
       //ScrollTrigger.clearScrollMemory()
       mm.add("(max-width: 479px)", () => {
         ScrollTrigger.refresh();
-        this.scrollContainer = this.container.querySelector(
-            ".work-visuals-wrapper"
-        );
+        //this.scrollContainer = this.container.querySelector(".work-visuals-wrapper");
         let getAmount = () =>{
           return (this.scrollContainer.scrollWidth - window.innerWidth)
         }
@@ -178,26 +170,28 @@ class Projects {
         })
       });
       mm.add("(min-width: 480px)", () => {
+        console.log(this.container)
         ScrollTrigger.refresh();
-        this.scrollContainer = this.container.querySelector(".work-wrapper");
+        //this.scrollContainer = this.container.querySelector(".work-visuals-wrapper");
         //console.log(window.innerWidth)
         //console.log(-1 * (this.scrollContainer.scrollWidth))
        // console.log(-1 * (this.scrollContainer.scrollWidth - window.innerWidth))
-        /*
+
         let getAmount = () =>{
             return (this.scrollContainer.scrollWidth - window.innerWidth)
         }
+        console.log(this.scrollContainer.scrollWidth, window.innerWidth)
 
-         */
-        let a = (this.scrollContainer.scrollWidth - window.innerWidth)
 
-        let horScroll = gsap.to(this.scrollContainer, {
+        let a = (this.scrollContainer.scrollWidth)
+
+        let horScroll = gsap.to(this.workWrapper, {
           x: () => -1 * a,
           ease: "none",
           scrollTrigger: {
-            trigger: this.scrollContainer,
+            trigger: this.workWrapper,
             start: "top top",
-            end: () => "+=" + a ,
+            end: () => "+=" + a,
             scrub: 1,
             pin: true,
             anticipatePin: 1,
