@@ -6,7 +6,7 @@ import {Flip} from "gsap/Flip";
 
 
 gsap.registerPlugin(ScrollTrigger, Flip);
-const lottie = Webflow.require("lottie").lottie;
+const lottie = window.Webflow && window.Webflow.require("lottie").lottie;
 
 class Projects {
   fadeOutTimeout = null;
@@ -170,7 +170,6 @@ class Projects {
         })
       });
       mm.add("(min-width: 480px)", () => {
-        console.log(this.container)
         ScrollTrigger.refresh();
         //this.scrollContainer = this.container.querySelector(".work-visuals-wrapper");
         //console.log(window.innerWidth)
