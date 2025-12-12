@@ -28,7 +28,7 @@ export class Nav {
 
   updateFooterYear(){
     const year = new Date().getFullYear();
-    const footerYearDiv = this.container.getElementById("menu-year");
+    const footerYearDiv = this.container.querySelector("#menu-year");
     footerYearDiv.textContent = year.toString();
   }
 
