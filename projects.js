@@ -6,7 +6,7 @@ import {Flip} from "gsap/Flip";
 
 
 gsap.registerPlugin(ScrollTrigger, Flip);
-const lottie = window.Webflow && window.Webflow.require("lottie").lottie;
+const lottie = window.Webflow && window.Webflow.require("lottie")?.lottie;
 
 class Projects {
   fadeOutTimeout = null;
@@ -289,8 +289,14 @@ class Projects {
   }
 f
   togglePlay() {
-    const [animation] = lottie.getRegisteredAnimations();
-    animation.firstFrame = 30.5;
+      if(lottie){
+
+      }
+    const [animation] = lottie?.getRegisteredAnimations();
+      if(animation){
+          animation.firstFrame = 30.5;
+      }
+
     //video controls show
     const tl = gsap.timeline({ paused: true });
     const muteLetters = [...this.info.querySelectorAll(".char")];
@@ -335,11 +341,16 @@ f
       });
 
       if (isPaused) {
-        this.togglePlayBtn(animation, 1, 3);
+          if(animation){
+              this.togglePlayBtn(animation, 1, 3);
+          }
+
         this.video.play();
         tl.play();
       } else {
-        this.togglePlayBtn(animation, -1, 1);
+          if(animation){
+              this.togglePlayBtn(animation, -1, 1);
+          }
         this.video.pause();
         tl.reverse();
       }

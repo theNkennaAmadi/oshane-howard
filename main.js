@@ -82,12 +82,57 @@ function resetWebflow(data) {
     if (window.Webflow) {
         window.Webflow.destroy()
         window.Webflow.ready()
-        window.Webflow.require('ix2').init()
-        window.Webflow.require("lottie").init();
+        window.Webflow.require('ix2')?.init()
+        window.Webflow.require("lottie")?.init();
         //window.Webflow.require('forms').ready()
         //window.Webflow.require('forms').init()
     }
 
+    if (typeof Webflow.require === 'function') {
+        // List of common/known Webflow modules to check
+        const knownModules = [
+            'ix2',          // Interactions 2.0 (main animation engine)
+            'ix',           // Legacy interactions (rare now)
+            'lottie',       // Lottie animations (if embedded)
+            'commerce',     // Ecommerce features
+            'lightbox',     // Lightbox
+            'slider',       // Sliders
+            'tabs',         // Tabs
+            'navbar',       // Navbar/dropdowns
+            'brand'         // Webflow branding/utils
+            // Add more if needed, based on your site's features
+        ];
+
+        const loaded = {};
+        knownModules.forEach(module => {
+            const mod = Webflow.require(module);
+            loaded[module] = !!mod;  // True if loaded
+            if (mod) console.log(`Module '${module}' loaded:`, mod);
+        });
+
+        console.log('Detected Webflow Modules:', loaded);
+
+        // Focus on IX2/animations
+        const ix2 = Webflow.require('ix2');
+        if (ix2) {
+            console.log('IX2 (Interactions 2.0) is loaded and ready!');
+            // Optional: Log more IX2 details if needed
+            console.log('IX2 details:', ix2);
+        } else {
+            console.log('No IX2 detected – interactions may not be enabled on this page/site.');
+        }
+
+        // For third-party packages (indirect detection)
+        const packages = {
+            lottie: !!window.lottie || !!Webflow.require('lottie'),
+            finsweet: !!window.FsComponents,
+            spline: !!window.SplineViewer,
+            // Extend as needed
+        };
+        console.log('Detected Third-Party Packages:', packages);
+    } else {
+        console.log('Webflow.require not available yet – script may be running too early.');
+    }
 
 }
 
@@ -158,8 +203,8 @@ barba.init({
         backgroundColorReset(nextContainer);
         navInstance = new Nav(nextContainer);
           window.Webflow && window.Webflow.ready();
-          window.Webflow && window.Webflow.require("ix2").init();
-          window.Webflow &&  window.Webflow.require("lottie").init();
+          window.Webflow && window.Webflow.require("ix2")?.init();
+          window.Webflow &&  window.Webflow.require("lottie")?.init();
         new WorkCategory(nextContainer);
 
       },
@@ -172,8 +217,8 @@ barba.init({
         backgroundColorReset(nextContainer);
         navInstance = new Nav(nextContainer);
           window.Webflow && window.Webflow.ready();
-          window.Webflow && window.Webflow.require("ix2").init();
-          window.Webflow &&  window.Webflow.require("lottie").init();
+          window.Webflow && window.Webflow.require("ix2")?.init();
+          window.Webflow &&  window.Webflow.require("lottie")?.init();
         new Projects(nextContainer);
 
       },
