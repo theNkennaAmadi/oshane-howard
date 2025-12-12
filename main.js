@@ -72,6 +72,30 @@ barba.hooks.beforeLeave((data) => {
   //lenis.destroy();
 });
 
+function resetWebflow(data) {
+    const parser = new DOMParser()
+    const dom = parser.parseFromString(data.next.html, 'text/html')
+    const webflowPageId = dom.querySelector('html').getAttribute('data-wf-page')
+    const siteId = dom.querySelector('html').getAttribute('data-wf-site')
+
+    document.querySelector('html').setAttribute('data-wf-page', webflowPageId)
+    if (window.Webflow) {
+        window.Webflow.destroy()
+        window.Webflow.ready()
+        window.Webflow.require('ix2').init()
+        window.Webflow.require("lottie").init();
+        //window.Webflow.require('forms').ready()
+        //window.Webflow.require('forms').init()
+    }
+
+
+}
+
+barba.hooks.after((data) => {
+
+    resetWebflow(data)
+})
+
 let firstLoad = true;
 
 barba.init({
@@ -133,7 +157,11 @@ barba.init({
         let nextContainer = data.next.container;
         backgroundColorReset(nextContainer);
         navInstance = new Nav(nextContainer);
+          window.Webflow && window.Webflow.ready();
+          window.Webflow && window.Webflow.require("ix2").init();
+          window.Webflow &&  window.Webflow.require("lottie").init();
         new WorkCategory(nextContainer);
+
       },
     },
     {
@@ -143,9 +171,11 @@ barba.init({
         let nextContainer = data.next.container;
         backgroundColorReset(nextContainer);
         navInstance = new Nav(nextContainer);
+          window.Webflow && window.Webflow.ready();
+          window.Webflow && window.Webflow.require("ix2").init();
+          window.Webflow &&  window.Webflow.require("lottie").init();
         new Projects(nextContainer);
-        window.Webflow && window.Webflow.ready();
-        window.Webflow && window.Webflow.require("ix2").init();
+
       },
     },
     {
