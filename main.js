@@ -108,7 +108,7 @@ function resetWebflow(data) {
         knownModules.forEach(module => {
             const mod = Webflow.require(module);
             loaded[module] = !!mod;  // True if loaded
-            if (mod) console.log(`Module '${module}' loaded:`, mod);
+           // if (mod) console.log(`Module '${module}' loaded:`, mod);
         });
 
        // console.log('Detected Webflow Modules:', loaded);
