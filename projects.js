@@ -9,6 +9,8 @@ gsap.registerPlugin(ScrollTrigger, Flip);
 const m =  window.Webflow && window.Webflow.require("lottie")
 const lottie = m?.lottie;
 
+ScrollTrigger.normalizeScroll(true)
+
 class Projects {
   fadeOutTimeout = null;
   hasCrossedThreshold = false;
