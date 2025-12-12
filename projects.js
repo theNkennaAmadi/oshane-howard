@@ -168,6 +168,7 @@ class Projects {
           start: "0% center",
           //end: "100% end",
           scrub: 1,
+            invalidateOnRefresh: true,
         })
       });
       mm.add("(min-width: 480px)", () => {
@@ -249,6 +250,7 @@ class Projects {
             end: "32% center",
             //toggleActions: "play none none reverse",
             scrub: 1,
+              invalidateOnRefresh: true,
             //markers: true,
           },
         });
