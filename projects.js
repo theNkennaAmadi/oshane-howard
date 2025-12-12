@@ -6,7 +6,8 @@ import {Flip} from "gsap/Flip";
 
 
 gsap.registerPlugin(ScrollTrigger, Flip);
-const lottie = window.Webflow && window.Webflow.require("lottie")?.lottie;
+const m =  window.Webflow && window.Webflow.require("lottie")
+const lottie = m?.lottie;
 
 class Projects {
   fadeOutTimeout = null;
