@@ -8,6 +8,7 @@ export class Nav {
   navOpenTl = gsap.timeline({ paused: true });
   navSocialsTl = gsap.timeline({ paused: true });
   constructor(container) {
+    this.container = container;
     this.navItems = [...container.querySelectorAll(".nav-menu-item")];
     this.navList = container.querySelector(".nav-menu-list");
     this.navImages = [...container.querySelectorAll(".menu-m-images-item")];
@@ -23,6 +24,12 @@ export class Nav {
     this.navClosedText = container.querySelector(".nav-close");
     this.init();
     this.navOpenTimeline();
+  }
+
+  updateFooterYear(){
+    const year = new Date().getFullYear();
+    const footerYearDiv = this.container.getElementById("menu-year");
+    footerYearDiv.textContent = year.toString();
   }
 
   addEventListeners() {
@@ -170,6 +177,7 @@ export class Nav {
     this.navList.append(this.navItems.at(-1));
     this.addEventListeners();
     this.navTimelines([], [], [], this.navImages[0]);
+    this.updateFooterYear();
   }
 }
 

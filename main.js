@@ -139,11 +139,14 @@ function resetWebflow(data) {
 
 barba.hooks.after((data) => {
     resetWebflow(data)
+    /*
     const footerYear = document.getElementById("menu-year");
     const currentYear = new Date().getFullYear();
     if (footerYear && footerYear.textContent !== currentYear.toString()) {
       footerYear.textContent = currentYear.toString();
     }
+
+     */
 })
 
 let firstLoad = true;
