@@ -88,6 +88,7 @@ function resetWebflow(data) {
         //window.Webflow.require('forms').init()
     }
 
+
     if (typeof Webflow.require === 'function') {
         // List of common/known Webflow modules to check
         const knownModules = [
@@ -110,16 +111,16 @@ function resetWebflow(data) {
             if (mod) console.log(`Module '${module}' loaded:`, mod);
         });
 
-        console.log('Detected Webflow Modules:', loaded);
+       // console.log('Detected Webflow Modules:', loaded);
 
         // Focus on IX2/animations
         const ix2 = Webflow.require('ix2');
         if (ix2) {
-            console.log('IX2 (Interactions 2.0) is loaded and ready!');
+          //  console.log('IX2 (Interactions 2.0) is loaded and ready!');
             // Optional: Log more IX2 details if needed
-            console.log('IX2 details:', ix2);
+          //  console.log('IX2 details:', ix2);
         } else {
-            console.log('No IX2 detected – interactions may not be enabled on this page/site.');
+          //  console.log('No IX2 detected – interactions may not be enabled on this page/site.');
         }
 
         // For third-party packages (indirect detection)
@@ -129,9 +130,9 @@ function resetWebflow(data) {
             spline: !!window.SplineViewer,
             // Extend as needed
         };
-        console.log('Detected Third-Party Packages:', packages);
+        //console.log('Detected Third-Party Packages:', packages);
     } else {
-        console.log('Webflow.require not available yet – script may be running too early.');
+       // console.log('Webflow.require not available yet – script may be running too early.');
     }
 
 }
